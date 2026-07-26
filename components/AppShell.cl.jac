@@ -5,8 +5,8 @@ timestamp rather than incrementing reactive state, because a callback created
 in an earlier render sees a stale snapshot of `has` fields.
 """
 
-sv import from ..api { AnalyseTake }
-sv import from ..engine.model { TakeReport }
+sv import from ..api { AnalyseTake, RankTake }
+sv import from ..engine.model { TakeReport, RankRow }
 
 import from "..lib.audio" {
     captureSupported, beginCapture, endCapture, releaseMic,
@@ -38,7 +38,9 @@ def:pub AppShell() -> JsxElement {
         busy: bool = False,
         status: str = "",
         error: str = "",
-        canRecord: bool = True;
+        canRecord: bool = True,
+        ranks: list[RankRow] = [],
+        ranked: bool = False;
 
     can with entry {
         canRecord = captureSupported();
@@ -47,6 +49,7 @@ def:pub AppShell() -> JsxElement {
     async def analyse(source: any) -> None;
     async def startRec() -> None;
     async def stopRec() -> None;
+    async def rankTake(name: str) -> None;
     def handleFile(file: any) -> None;
     def reset() -> None;
 
@@ -77,7 +80,14 @@ def:pub AppShell() -> JsxElement {
                     onFile={handleFile}
                 />
             } else {
-                <ResultsView take={shown} audioUrl={audioUrl} onReset={reset}/>
+                <ResultsView
+                    take={shown}
+                    audioUrl={audioUrl}
+                    ranks={ranks}
+                    ranked={ranked}
+                    onRank={rankTake}
+                    onReset={reset}
+                />
             }}
         </main>
     </div>;

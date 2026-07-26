@@ -71,6 +71,14 @@ node Reading {
         detail: str = "";
 }
 
+"""One name on the public leaderboard, hung off the shared commons root."""
+node Rank {
+    has name: str = "",
+        score: float = 0.0,
+        label: str = "",
+        created_at: str = "";
+}
+
 edge Holds {}
 edge Covers: Take --> Segment {}
 edge Scores: Segment --> Reading {}
@@ -114,6 +122,14 @@ obj Transcript {
 
 
 # --- Wire objects ----------------------------------------------------------
+
+"""One row on the public leaderboard as the client renders it."""
+obj RankRow {
+    has name: str = "",
+        score: float = 0.0,
+        label: str = "",
+        createdAt: str = "";
+}
 
 """A single labelled number shown under a dimension."""
 obj MetricPoint {

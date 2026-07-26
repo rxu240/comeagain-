@@ -11,9 +11,43 @@ import from engine.dimensions { TakeContext }
 import from engine.scoring { r2 }
 
 glob MERGE_GAP: int = 28;
+glob HARD_SPLIT: int = 100;
+glob JUMP_RATIO: float = 1.8;
 glob MIN_SEGMENT: int = 30;
 glob MAX_SEGMENT: int = 1400;
 glob RIBBON_POINTS: int = 480;
+
+
+"""Pick the gap length that separates breath pauses from sentence breaks.
+
+A fixed threshold over-cuts: a deliberate speaker pauses 400 ms mid-sentence
+and the take shatters into one-word utterances. Instead, sort every gap
+between speech runs and find the widest relative jump in their lengths; gaps
+above the jump are this speaker's sentence breaks, gaps below are merged.
+Falls back to MERGE_GAP when there are too few gaps or no clear jump, and a
+gap of HARD_SPLIT frames (1 s) always splits - silence that long is a
+sentence break no matter what the rest of the take looks like.
+"""
+def split_threshold(gaps: list[int]) -> int {
+    big: list[int] = [];
+    for g in gaps {
+        if g >= MERGE_GAP { big.append(g); }
+    }
+    if len(big) < 2 { return MERGE_GAP; }
+
+    s = sorted(big);
+    best_i = -1;
+    best_ratio = JUMP_RATIO;
+    for i in range(len(s) - 1) {
+        ratio = float(s[i + 1]) / float(max(s[i], 1));
+        if ratio >= best_ratio {
+            best_ratio = ratio;
+            best_i = i;
+        }
+    }
+    if best_i < 0 { return MERGE_GAP; }
+    return min(s[best_i + 1], HARD_SPLIT);
+}
 
 
 """Pitch, loudness and voicing resampled onto a fixed grid for the ribbon."""
@@ -35,9 +69,15 @@ def segment_bounds(ctx: TakeContext) -> list[tuple[int, int]] {
     }
     if cursor < ctx.total_frames { speech_runs.append((cursor, ctx.total_frames)); }
 
+    gaps: list[int] = [];
+    for i in range(1, len(speech_runs)) {
+        gaps.append(speech_runs[i][0] - speech_runs[i - 1][1]);
+    }
+    gap_cut = split_threshold(gaps);
+
     merged: list[tuple[int, int]] = [];
     for (s, e) in speech_runs {
-        if len(merged) > 0 and s - merged[-1][1] < MERGE_GAP {
+        if len(merged) > 0 and s - merged[-1][1] < gap_cut {
             merged[-1] = (merged[-1][0], e);
             continue;
         }

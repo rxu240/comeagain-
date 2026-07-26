@@ -18,9 +18,9 @@ import from engine.dimensions {
 import from engine.segmentation { segment_bounds, ribbon }
 import from engine.asr { transcribe, best_utterance, ASR_SIZE }
 import from engine.model {
-    Take, Segment, Reading, Holds, Covers, Scores, Rates,
+    Take, Segment, Reading, Rank, Holds, Covers, Scores, Rates,
     TakeReport, TakeSummary, SegmentReport, DimensionReport, Moment,
-    Transcript, Word
+    RankRow, Transcript, Word
 }
 import from engine.coach { coach_take }
 import from engine.scoring { r2 }
@@ -275,6 +275,65 @@ walker:pub DeleteTake {
         for rd in [take ->:Rates:->] { del rd; }
         del take;
         report True;
+    }
+}
+
+
+"""The board's rows, best take first, capped so it stays a podium not a log."""
+def top_ranks() -> list[RankRow] {
+    rows: list[RankRow] = [];
+    for r in [root.shared -->[?:Rank]] {
+        rows.append(RankRow(
+            name=r.name, score=r.score, label=r.label, createdAt=r.created_at
+        ));
+    }
+    ordered = sorted(rows, key=lambda x: RankRow : x.score, reverse=True);
+    if len(ordered) > 20 { ordered = ordered[0:20]; }
+    return ordered;
+}
+
+
+"""Put a name on the public leaderboard for an analysed take.
+
+The entry lives on the shared commons root rather than the session's own
+root, so every visitor reads the same board.
+"""
+walker:pub RankTake {
+    has takeId: str = "";
+    has name: str = "";
+    has reports: list[list[RankRow]] = [];
+
+    can run with Root entry {
+        matches = [here -->[?:Take, uid == self.takeId]];
+        if len(matches) == 0 {
+            report top_ranks();
+            return;
+        }
+        take = matches[0];
+
+        who = self.name.strip();
+        if who == "" { who = "Anonymous"; }
+        if len(who) > 24 { who = who[0:24]; }
+
+        fresh = (root.shared ++> Rank(
+            name=who,
+            score=take.overall,
+            label=take.label,
+            created_at=take.created_at
+        ))[0];
+        grant(fresh, level=ReadPerm);
+
+        report top_ranks();
+    }
+}
+
+
+"""The public leaderboard, readable by anyone."""
+walker:pub Leaderboard {
+    has reports: list[list[RankRow]] = [];
+
+    can run with Root entry {
+        report top_ranks();
     }
 }
 

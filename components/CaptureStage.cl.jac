@@ -35,13 +35,13 @@ def:pub CaptureStage(
 
     return <div className="flex flex-col items-center gap-9 pt-6">
         <header className="text-center px-2">
-            <h1 className="display text-[2.75rem] leading-[1.05] text-ink-900">
-                {"Hear how you"}
+            <h1 className="display text-[2.5rem] leading-[1.1] text-ink-900">
+                {"Hate when people say “huh?”"}
                 <br/>
-                {"actually sound."}
+                {"like they can’t hear you?"}
             </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-ink-600 max-w-[30ch] mx-auto">
-                {"Record a minute of speaking. TONECRAFT reads the delivery second by second and tells you which lines are working."}
+            <p className="mt-3 text-[15px] leading-relaxed text-ink-600 max-w-[34ch] mx-auto">
+                {"TONECRAFT is the first AI speech communication coach. Record a minute of speaking and it reads your delivery second by second."}
             </p>
         </header>
 

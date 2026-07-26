@@ -88,12 +88,29 @@ impl AppShell.analyse(source: any) -> None {
 }
 
 
+impl AppShell.rankTake(name: str) -> None {
+    if take == None { return; }
+    current = take as TakeReport;
+    try {
+        result = root spawn RankTake(takeId=current.takeId, name=name);
+        if result.reports and len(result.reports) > 0 {
+            ranks = result.reports[0];
+            ranked = True;
+        }
+    } except Exception as err {
+        error = "Could not reach the leaderboard. (" + String(err) + ")";
+    }
+}
+
+
 impl AppShell.reset() -> None {
     haltTicker();
     releaseMic();
     if audioUrl != "" { URL.revokeObjectURL(audioUrl); }
     take = None;
     audioUrl = "";
+    ranks = [];
+    ranked = False;
     elapsed = 0.0;
     level = 0.0;
     status = "";

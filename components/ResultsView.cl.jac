@@ -5,7 +5,7 @@ do about it, then the detail. A speaker who reads only the top third still
 leaves knowing the one thing to change.
 """
 
-sv import from ..engine.model { TakeReport, SegmentReport, DimensionReport }
+sv import from ..engine.model { TakeReport, SegmentReport, DimensionReport, RankRow }
 import from .ScoreCrest { ScoreCrest }
 import from .ProsodyRibbon { ProsodyRibbon }
 import from .DimensionCard { DimensionCard }
@@ -13,6 +13,7 @@ import from .SegmentList { SegmentList }
 import from .SegmentSheet { SegmentSheet }
 import from .MomentList { MomentList }
 import from .LiveTranscript { LiveTranscript }
+import from .Leaderboard { LeaderboardPanel }
 
 
 """The tone dimension, which the crest displays as the headline read."""
@@ -37,11 +38,16 @@ def mechanicsOf(dims: list[DimensionReport]) -> list[DimensionReport] {
 def:pub ResultsView(
     take: TakeReport,
     audioUrl: str,
+    ranks: list[RankRow],
+    ranked: bool,
+    onRank: Callable[[str], None],
     onReset: Callable[[], None]
 ) -> JsxElement {
     has activeIdx: int = -1;
     has sheetOpen: bool = False;
     has playTime: float = -1.0;
+    has rankOpen: bool = False;
+    has rankName: str = "";
 
     def pickSegment(idx: int) {
         activeIdx = idx;
@@ -87,6 +93,11 @@ def:pub ResultsView(
 
     def endPlayback(_e: any) {
         playTime = -1.0;
+    }
+
+    def submitRank(e: MouseEvent) {
+        onRank(rankName);
+        rankOpen = False;
     }
 
     def playAll(e: MouseEvent) {
@@ -146,7 +157,47 @@ def:pub ResultsView(
                         {"New take"}
                     </span>
                 </button>
+                {if not ranked {
+                    <button
+                        type="button"
+                        onClick={lambda e: MouseEvent { rankOpen = not rankOpen; }}
+                        className="glass-btn rounded-full h-11 px-6 cursor-pointer"
+                    >
+                        <span className="mono text-[11px] uppercase tracking-[0.2em] text-ink-600">
+                            {"Rank this?"}
+                        </span>
+                    </button>
+                }}
             </div>
+        }}
+
+        {if rankOpen and not ranked {
+            <section className="glass-quiet rounded-3xl px-6 py-5">
+                <span className="eyebrow">Put this take on the board</span>
+                <div className="mt-3 flex gap-2">
+                    <input
+                        type="text"
+                        value={rankName}
+                        onChange={lambda e: ChangeEvent { rankName = e.target.value; }}
+                        placeholder="Your name"
+                        aria-label="Name for the leaderboard"
+                        className="glass-quiet flex-1 min-w-0 rounded-2xl px-4 py-3 text-[14px] text-ink-900 placeholder:text-ink-400 outline-none border-0"
+                    />
+                    <button
+                        type="button"
+                        onClick={submitRank}
+                        className="glass-btn rounded-full h-11 px-6 cursor-pointer shrink-0"
+                    >
+                        <span className="mono text-[11px] uppercase tracking-[0.2em] text-ink-600">
+                            {"Rank it"}
+                        </span>
+                    </button>
+                </div>
+            </section>
+        }}
+
+        {if ranked {
+            <LeaderboardPanel rows={ranks} me={rankName.trim()}/>
         }}
 
         {if take.transcript != "" {
