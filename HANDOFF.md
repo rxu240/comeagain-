@@ -9,9 +9,16 @@ JacHacks SF hacking window closes **19:15 PDT**.
 
 ---
 
-## 0. ONE THING IS BROKEN RIGHT NOW
+## 0. ONE THING IS BROKEN RIGHT NOW — **RESOLVED 2026-07-26 ~14:15**
 
-`verify.jac` **does not type-check.** Everything else does.
+Fix (a) below was applied: `fixture-speech.b64` regenerated from the wav,
+`load_wav` replaced with `decode_pcm(open("fixture-speech.b64").read())`,
+`wave.pyi` deleted. **VERIFIED** — `jac check` passes on all four entry files,
+`jac run verify.jac` holds all assertions with the exact §5 values, and
+`jac run selftest.jac` passes. Everything is committed (`49df4be`).
+The rest of this section is kept as the record of the dead end.
+
+`verify.jac` **did not type-check.** Everything else did.
 
 ```
 main.jac         1 passed
