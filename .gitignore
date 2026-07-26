@@ -1,0 +1,9 @@
+.jac/
+node_modules/
+.venv/
+ejected/
+__pycache__/
+*.pyc
+
+# Generated test artefact — rebuild with tools/make_fixture_wav.jac
+fixture-take.wav

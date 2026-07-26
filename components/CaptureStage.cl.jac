@@ -1,0 +1,105 @@
+"""The opening screen: say something, or bring a file.
+
+The eight dimensions are printed here rather than hidden behind a marketing
+line, because the list *is* the product description and a speaker recognises
+their own weak spot in it immediately.
+"""
+
+import from .RecordButton { RecordButton }
+
+glob MEASURES: list[str] = [
+    "Tone", "Pitch", "Pacing", "Pausing",
+    "Volume", "Intonation", "Stress", "Articulation"
+];
+
+
+def:pub CaptureStage(
+    recording: bool,
+    elapsed: float,
+    level: float,
+    busy: bool,
+    status: str,
+    error: str,
+    canRecord: bool,
+    purpose: str,
+    onPurpose: Callable[[str], None],
+    onStart: Callable[[], None],
+    onStop: Callable[[], None],
+    onFile: Callable[[any], None]
+) -> JsxElement {
+    def pickFile(e: ChangeEvent) {
+        files = e.target.files;
+        if files and files.length > 0 { onFile(files[0]); }
+        e.target.value = "";
+    }
+
+    return <div className="flex flex-col items-center gap-9 pt-6">
+        <header className="text-center px-2">
+            <h1 className="display text-[2.75rem] leading-[1.05] text-ink-900">
+                {"Hear how you"}
+                <br/>
+                {"actually sound."}
+            </h1>
+            <p className="mt-3 text-[15px] leading-relaxed text-ink-600 max-w-[30ch] mx-auto">
+                {"Record a minute of speaking. TONECRAFT reads the delivery second by second and tells you which lines are working."}
+            </p>
+        </header>
+
+        <RecordButton
+            recording={recording}
+            elapsed={elapsed}
+            level={level}
+            busy={busy}
+            onStart={onStart}
+            onStop={onStop}
+        />
+
+        {if not canRecord {
+            <p className="text-[13px] text-clay text-center max-w-[34ch]">
+                {"This browser will not give us a microphone. You can still upload a file below."}
+            </p>
+        }}
+
+        {if status != "" {
+            <p className="mono text-[11px] uppercase tracking-[0.2em] text-ink-400" aria-live="polite">
+                {status}
+            </p>
+        }}
+
+        {if error != "" {
+            <p className="text-[13px] text-clay text-center max-w-[34ch]" role="alert">{error}</p>
+        }}
+
+        <div className="w-full max-w-sm flex flex-col gap-3">
+            <input
+                type="text"
+                value={purpose}
+                onChange={lambda e: ChangeEvent { onPurpose(e.target.value); }}
+                placeholder="What is this for? (optional)"
+                aria-label="What this recording is for"
+                className="glass-quiet w-full rounded-2xl px-4 py-3 text-[14px] text-ink-900 placeholder:text-ink-400 outline-none border-0"
+            />
+
+            <label className="glass-btn rounded-2xl h-12 grid place-items-center cursor-pointer">
+                <span className="mono text-[11px] uppercase tracking-[0.2em] text-ink-600">
+                    {"Upload a recording"}
+                </span>
+                <input
+                    type="file"
+                    accept="audio/*,video/mp4,.m4a,.mp3,.wav,.ogg,.webm"
+                    onChange={pickFile}
+                    className="sr-only"
+                />
+            </label>
+        </div>
+
+        <div className="w-full max-w-md px-2">
+            <div className="hairline mb-4"></div>
+            <ul className="list-none p-0 m-0 flex flex-wrap justify-center gap-x-4 gap-y-2">
+                {for (i, name) in enumerate(MEASURES) {
+                    <li key={"me" + String(i)} className="eyebrow">{name}</li>
+                }}
+            </ul>
+        </div>
+    </div>;
+}

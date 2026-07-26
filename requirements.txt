@@ -1,0 +1,11 @@
+# Core runtime. Python 3.12+ is required by jaclang.
+jaclang==0.16.7
+jac-client==0.3.25
+jac-super==0.1.22
+numpy>=2.0
+
+# Pinned deliberately: llvmlite 0.46+ removed the `size_level` argument that
+# jaclang 0.16.7's native/eject path still passes to
+# create_pipeline_tuning_options(). With 0.48 installed, `jac eject` and
+# `jac nacompile` fail; `jac start` is unaffected. Unpin once jaclang updates.
+llvmlite==0.44.0

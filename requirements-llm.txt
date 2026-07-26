@@ -1,0 +1,7 @@
+# Optional. Install only if you want the byLLM coaching layer.
+#
+# engine/coach.jac loads engine/llm_coach.jac through importlib, so byllm is
+# never imported unless ANTHROPIC_API_KEY is set AND this file is installed.
+# Without it the deterministic coach runs and the app is fully functional.
+-r requirements.txt
+byllm==0.6.19

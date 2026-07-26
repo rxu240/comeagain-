@@ -1,0 +1,281 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource/marcellus";
+@import "@fontsource-variable/jost";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+
+/* ---------------------------------------------------------------------------
+   TONECRAFT — "voice atelier"
+
+   Beige and brass rather than beige and terracotta: the reference is studio
+   hardware and a hand-bound elocution manual, not a warm-minimal landing page.
+   Marcellus is an inscriptional Roman face — the letterforms of classical
+   rhetoric, which is what this app is actually about. Jost carries body copy;
+   IBM Plex Mono carries every number and timecode, because measurements should
+   look like instrument readouts.
+--------------------------------------------------------------------------- */
+
+:root {
+    --sand-50:  #FAF6EF;
+    --sand-100: #F2ECE1;
+    --sand-200: #E7DDCC;
+    --sand-300: #D6C8B1;
+    --sand-400: #B9A88B;
+
+    --ink-900: #241F19;
+    --ink-700: #453D33;
+    --ink-600: #5E5548;
+    --ink-400: #8B8172;
+
+    --brass:    #A67C34;
+    --brass-lt: #C9A45E;
+    --sage:     #4E6B57;
+    --clay:     #A65441;
+
+    /* shadcn surface tokens, retuned to the beige ground */
+    --background: var(--sand-200);
+    --foreground: var(--ink-900);
+    --card: rgba(255, 252, 246, 0.55);
+    --card-foreground: var(--ink-900);
+    --popover: var(--sand-50);
+    --popover-foreground: var(--ink-900);
+    --primary: var(--ink-900);
+    --primary-foreground: var(--sand-50);
+    --secondary: rgba(255, 252, 246, 0.5);
+    --secondary-foreground: var(--ink-900);
+    --muted: rgba(214, 200, 177, 0.35);
+    --muted-foreground: var(--ink-600);
+    --accent: var(--brass);
+    --accent-foreground: var(--sand-50);
+    --destructive: var(--clay);
+    --border: rgba(140, 120, 92, 0.22);
+    --input: rgba(140, 120, 92, 0.26);
+    --ring: var(--brass);
+    --radius: 1rem;
+}
+
+@theme inline {
+    --font-sans: 'Jost Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Marcellus', ui-serif, Georgia, serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+    --color-sand-50: var(--sand-50);
+    --color-sand-100: var(--sand-100);
+    --color-sand-200: var(--sand-200);
+    --color-sand-300: var(--sand-300);
+    --color-sand-400: var(--sand-400);
+    --color-ink-900: var(--ink-900);
+    --color-ink-700: var(--ink-700);
+    --color-ink-600: var(--ink-600);
+    --color-ink-400: var(--ink-400);
+    --color-brass: var(--brass);
+    --color-brass-lt: var(--brass-lt);
+    --color-sage: var(--sage);
+    --color-clay: var(--clay);
+
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+
+    --radius-sm: calc(var(--radius) - 8px);
+    --radius-md: calc(var(--radius) - 4px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 6px);
+    --radius-2xl: calc(var(--radius) + 12px);
+    --radius-3xl: calc(var(--radius) + 20px);
+}
+
+@layer base {
+    html {
+        font-family: var(--font-sans);
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+        margin: 0;
+        color: var(--ink-900);
+        background-color: var(--sand-200);
+        /* Light through linen: three soft pools give the glass something to
+           refract. Without depth behind it, backdrop-filter reads as flat. */
+        background-image:
+            radial-gradient(58rem 40rem at 12% -8%, rgba(255, 253, 247, 0.95), transparent 62%),
+            radial-gradient(44rem 34rem at 105% 8%, rgba(214, 200, 177, 0.62), transparent 58%),
+            radial-gradient(52rem 46rem at 50% 118%, rgba(185, 168, 139, 0.42), transparent 64%);
+        background-attachment: fixed;
+        min-height: 100svh;
+        overflow-x: hidden;
+    }
+
+    /* Paper tooth. Keeps large beige fields from reading as plastic. */
+    body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        opacity: 0.05;
+        mix-blend-mode: multiply;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--brass);
+        outline-offset: 3px;
+        border-radius: 4px;
+    }
+
+    ::selection {
+        background: rgba(166, 124, 52, 0.22);
+    }
+}
+
+@layer components {
+    /* The glass system. One recipe, three weights. */
+    .glass {
+        background-image: linear-gradient(148deg,
+            rgba(255, 252, 246, 0.66),
+            rgba(240, 232, 218, 0.34));
+        backdrop-filter: blur(18px) saturate(118%);
+        -webkit-backdrop-filter: blur(18px) saturate(118%);
+        border: 1px solid rgba(255, 253, 248, 0.62);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.78),
+            inset 0 -1px 0 rgba(150, 130, 100, 0.10),
+            0 14px 34px -16px rgba(74, 58, 36, 0.34);
+    }
+
+    .glass-quiet {
+        background-image: linear-gradient(148deg,
+            rgba(255, 252, 246, 0.42),
+            rgba(240, 232, 218, 0.20));
+        backdrop-filter: blur(12px) saturate(110%);
+        -webkit-backdrop-filter: blur(12px) saturate(110%);
+        border: 1px solid rgba(255, 253, 248, 0.46);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    }
+
+    /* The beige glass button. */
+    .glass-btn {
+        position: relative;
+        background-image: linear-gradient(150deg,
+            rgba(255, 253, 248, 0.80),
+            rgba(231, 221, 204, 0.44));
+        backdrop-filter: blur(16px) saturate(125%);
+        -webkit-backdrop-filter: blur(16px) saturate(125%);
+        border: 1px solid rgba(255, 253, 248, 0.72);
+        color: var(--ink-900);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.9),
+            inset 0 -2px 4px rgba(150, 130, 100, 0.12),
+            0 10px 24px -12px rgba(74, 58, 36, 0.40);
+        transition: transform 180ms cubic-bezier(.2,.7,.3,1),
+                    box-shadow 180ms cubic-bezier(.2,.7,.3,1),
+                    border-color 180ms ease;
+    }
+
+    .glass-btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        border-color: rgba(201, 164, 94, 0.75);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.95),
+            inset 0 -2px 4px rgba(150, 130, 100, 0.10),
+            0 16px 32px -14px rgba(74, 58, 36, 0.44);
+    }
+
+    .glass-btn:active:not(:disabled) {
+        transform: translateY(1px) scale(0.995);
+        box-shadow:
+            inset 0 2px 6px rgba(150, 130, 100, 0.22),
+            0 6px 14px -10px rgba(74, 58, 36, 0.40);
+    }
+
+    .glass-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .display {
+        font-family: var(--font-display);
+        font-weight: 400;
+        letter-spacing: -0.005em;
+    }
+
+    .mono {
+        font-family: var(--font-mono);
+        font-feature-settings: "tnum" 1;
+    }
+
+    /* Eyebrow: small caps, wide tracking. The manual's section marks. */
+    .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.625rem;
+        font-weight: 500;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--ink-400);
+    }
+
+    .hairline {
+        height: 1px;
+        background-image: linear-gradient(90deg,
+            transparent, rgba(140, 120, 92, 0.30) 18%,
+            rgba(140, 120, 92, 0.30) 82%, transparent);
+    }
+}
+
+@layer utilities {
+    .band-strong { color: var(--sage); }
+    .band-steady { color: var(--brass); }
+    .band-watch  { color: var(--clay); }
+
+    .bg-band-strong { background-color: var(--sage); }
+    .bg-band-steady { background-color: var(--brass); }
+    .bg-band-watch  { background-color: var(--clay); }
+
+    .safe-bottom { padding-bottom: max(1.5rem, env(safe-area-inset-bottom)); }
+}
+
+/* The record button's breathing ring. */
+@keyframes tc-pulse {
+    0%   { transform: scale(1);    opacity: 0.55; }
+    70%  { transform: scale(1.28); opacity: 0; }
+    100% { transform: scale(1.28); opacity: 0; }
+}
+
+@keyframes tc-rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes tc-draw {
+    from { stroke-dashoffset: 1; }
+    to   { stroke-dashoffset: 0; }
+}
+
+.tc-pulse { animation: tc-pulse 2.4s cubic-bezier(.2,.7,.3,1) infinite; }
+.tc-rise  { animation: tc-rise 520ms cubic-bezier(.2,.7,.3,1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

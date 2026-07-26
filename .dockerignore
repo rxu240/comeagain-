@@ -1,0 +1,8 @@
+.jac/
+.venv/
+ejected/
+node_modules/
+__pycache__/
+*.pyc
+fixture-take.wav
+.git/
