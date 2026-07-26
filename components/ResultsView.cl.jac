@@ -12,6 +12,7 @@ import from .DimensionCard { DimensionCard }
 import from .SegmentList { SegmentList }
 import from .SegmentSheet { SegmentSheet }
 import from .MomentList { MomentList }
+import from .LiveTranscript { LiveTranscript }
 
 
 """The tone dimension, which the crest displays as the headline read."""
@@ -40,6 +41,7 @@ def:pub ResultsView(
 ) -> JsxElement {
     has activeIdx: int = -1;
     has sheetOpen: bool = False;
+    has playTime: float = -1.0;
 
     def pickSegment(idx: int) {
         activeIdx = idx;
@@ -63,6 +65,28 @@ def:pub ResultsView(
         };
         el.addEventListener("timeupdate", watcher);
         el.play();
+    }
+
+    def followWord() {
+        box = document.getElementById("tc-live-box");
+        marker = document.getElementById("tc-live-now");
+        if not box or not marker { return; }
+        y = marker.offsetTop;
+        pad = 12.0;
+        if y < box.scrollTop + pad or y + marker.offsetHeight > box.scrollTop + box.clientHeight - pad {
+            box.scrollTop = y - box.clientHeight / 2.0;
+        }
+    }
+
+    def tickTime(_e: any) {
+        el = document.getElementById("tc-audio");
+        if not el { return; }
+        playTime = el.currentTime;
+        window.requestAnimationFrame(lambda(_t: any) { followWord(); });
+    }
+
+    def endPlayback(_e: any) {
+        playTime = -1.0;
     }
 
     def playAll(e: MouseEvent) {
@@ -125,6 +149,15 @@ def:pub ResultsView(
             </div>
         }}
 
+        {if take.transcript != "" {
+            <LiveTranscript
+                segments={take.segments}
+                transcript={take.transcript}
+                source={take.transcriptSource}
+                time={playTime}
+            />
+        }}
+
         {if len(take.coaching) > 0 {
             <section className="glass rounded-3xl px-6 py-6">
                 <span className="eyebrow">Work on this</span>
@@ -161,20 +194,6 @@ def:pub ResultsView(
             onPick={pickSegment}
         />
 
-        {if take.transcript != "" {
-            <section className="glass-quiet rounded-3xl px-6 py-6">
-                <div className="flex items-baseline justify-between">
-                    <span className="eyebrow">Transcript</span>
-                    <span className="mono text-[10px] uppercase tracking-[0.18em] text-ink-400">
-                        {take.transcriptSource}
-                    </span>
-                </div>
-                <p className="mt-4 text-[14px] leading-relaxed text-ink-700">
-                    {take.transcript}
-                </p>
-            </section>
-        }}
-
         {if take.transcriptNote != "" {
             <section className="glass-quiet rounded-3xl px-6 py-5">
                 <span className="eyebrow">Transcript</span>
@@ -192,7 +211,14 @@ def:pub ResultsView(
         />
 
         {if audioUrl != "" {
-            <audio id="tc-audio" src={audioUrl} preload="metadata" className="hidden"></audio>
+            <audio
+                id="tc-audio"
+                src={audioUrl}
+                preload="metadata"
+                className="hidden"
+                onTimeUpdate={tickTime}
+                onEnded={endPlayback}
+            ></audio>
         }}
     </div>;
 }
