@@ -17,11 +17,17 @@ glob TARGET_RATE: int = 16000;
 glob MAX_SECONDS: float = 180.0;
 
 
-"""Decoded audio, ready to send and to play back."""
+"""Decoded audio, ready to send and to play back.
+
+`error` carries a message meant for the user. Decoding fails for ordinary
+reasons - a recording that captured nothing, a file the browser has no codec
+for - and those deserve an instruction, not a raw EncodingError.
+"""
 obj Decoded {
     has b64: str = "",
         duration: float = 0.0,
-        url: str = "";
+        url: str = "",
+        error: str = "";
 }
 
 
@@ -104,7 +110,9 @@ async def:pub beginCapture() -> bool {
         _recorder.ondataavailable = lambda(e: any) {
             if e.data and e.data.size > 0 { _chunks.push(e.data); }
         };
-        _recorder.start(250);
+        # No timeslice: one well-formed blob on stop. Chunked output has to be
+        # reassembled, and a concatenation of fragments is not always decodable.
+        _recorder.start();
         return True;
     } except Exception as err {
         console.error("[tonecraft] mic unavailable:", err);
@@ -148,11 +156,32 @@ def toBase64(buffer: any) -> any {
 
 """Decode any audio source to 16 kHz mono int16 PCM, base64 encoded."""
 async def:pub decodeToPcm(source: any) -> Decoded {
-    raw = await source.arrayBuffer();
+    # A recorder that captured nothing yields an empty blob, and decodeAudioData
+    # reports that as EncodingError - the same thing it says about a corrupt
+    # file. Separate the two here so the user gets the right instruction.
+    size = Number(source.size or 0);
+    if size < 2048 {
+        return Decoded(
+            error="That recording came out empty. Hold the button for a few seconds before stopping, and check the right microphone is selected in your browser."
+        );
+    }
 
+    raw = await source.arrayBuffer();
     ctx = new(AudioContext);
-    audio = await ctx.decodeAudioData(raw.slice(0));
+    audio = None;
+    try {
+        audio = await ctx.decodeAudioData(raw.slice(0));
+    } except Exception {
+        try { ctx.close(); } except Exception { console.debug("audio context already closed"); }
+        return Decoded(
+            error="We could not decode that audio. WAV, MP3, M4A, OGG and WebM all work - if this was a recording, try again."
+        );
+    }
     ctx.close();
+
+    if not audio or audio.duration <= 0.0 {
+        return Decoded(error="That file decoded to no audio at all. Try a different recording.");
+    }
 
     seconds = audio.duration;
     if seconds > MAX_SECONDS { seconds = MAX_SECONDS; }

@@ -52,10 +52,16 @@ impl AppShell.analyse(source: any) -> None {
 
     try {
         decoded = await decodeToPcm(source);
+        if decoded.error != "" {
+            busy = False;
+            status = "";
+            error = decoded.error;
+            return;
+        }
         if decoded.duration < 1.5 {
             busy = False;
             status = "";
-            error = "That clip is too short to read. Ten seconds or more gives a real result.";
+            error = "That clip is only " + String(Math.round(decoded.duration * 10.0) / 10.0) + "s. Ten seconds or more gives a real result.";
             return;
         }
 
@@ -75,7 +81,9 @@ impl AppShell.analyse(source: any) -> None {
     } except Exception as err {
         busy = False;
         status = "";
-        error = "We could not analyse that audio. " + String(err);
+        # Decode problems are handled above, so anything here is the round trip
+        # to the analyser rather than the audio itself.
+        error = "The analyser did not respond. Check the server is still running, then try again. (" + String(err) + ")";
     }
 }
 
