@@ -195,6 +195,17 @@ not bare scalars (`np.take(a, 0, axis=1)`, not `a[:, 0]`).
 
 ---
 
+### If the server starts throwing `ValueError: Invalid anchor id`
+
+Deleting `.jac/data` while a browser still holds a session will do this: the
+cookie points at a graph anchor that no longer exists, and the request fails
+before your walker runs. Stop the server, remove `.jac/data`, restart, and use
+a fresh browser origin (a private window, or `127.0.0.1` instead of
+`localhost` — they are separate cookie hosts). Reset persistence with the
+server stopped, not while it is running.
+
+---
+
 ## Known limitations
 
 - Syllable counting is intensity-based, so it over-counts on very breathy or
