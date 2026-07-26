@@ -12,7 +12,7 @@ impl AppShell.startRec() -> None {
     _startedAt = Date.now();
     recording = True;
     elapsed = 0.0;
-    _ticker = setInterval(lambda {
+    _ticker = setInterval(lambda () {
         elapsed = (Date.now() - _startedAt) / 1000.0;
         level = liveLevel();
     }, 70);

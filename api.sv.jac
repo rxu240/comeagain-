@@ -33,7 +33,7 @@ segment, which reads as noise rather than as a timeline. Capping per dimension
 keeps the list varied and scannable; the per-segment lists keep everything.
 """
 def curate_moments(items: list[Moment]) -> list[Moment] {
-    ordered = sorted(items, key=lambda m: Moment : m.t);
+    ordered = sorted(items, key=moment_time);
     seen: dict[str, int] = {};
     out: list[Moment] = [];
     for m in ordered {
@@ -50,6 +50,23 @@ def curate_moments(items: list[Moment]) -> list[Moment] {
 def default_label(when: datetime) -> str {
     return "Take " + when.strftime("%b %d, %H:%M");
 }
+
+
+# Sort keys as named functions rather than lambdas: jaclang 0.16.7 miscompiles
+# braced lambdas inside walker abilities (runtime NameError), and newer
+# jaclang rejects the old `lambda x: T : expr` form. Plain defs run on both.
+
+"""When a moment happens."""
+def moment_time(m: Moment) -> float { return m.t; }
+
+"""When a take was recorded."""
+def summary_created(s: TakeSummary) -> str { return s.createdAt; }
+
+"""A segment's position in the take."""
+def segment_idx(s: SegmentReport) -> int { return s.idx; }
+
+"""A leaderboard entry's score."""
+def rank_score(x: RankRow) -> float { return x.score; }
 
 
 # --- Walkers ---------------------------------------------------------------
@@ -202,7 +219,7 @@ walker:pub ListTakes {
     }
 
     can finish with Root exit {
-        report sorted(self.found, key=lambda s: TakeSummary : s.createdAt, reverse=True);
+        report sorted(self.found, key=summary_created, reverse=True);
     }
 }
 
@@ -248,7 +265,7 @@ walker:pub LoadTake {
             overall=take.overall,
             summary=take.summary,
             dimensions=overall_dims,
-            segments=sorted(segments, key=lambda s: SegmentReport : s.idx),
+            segments=sorted(segments, key=segment_idx),
             transcript=take.transcript,
             transcriptSource="stored" if take.transcript != "" else "none"
         );
@@ -287,7 +304,7 @@ def top_ranks() -> list[RankRow] {
             name=r.name, score=r.score, label=r.label, createdAt=r.created_at
         ));
     }
-    ordered = sorted(rows, key=lambda x: RankRow : x.score, reverse=True);
+    ordered = sorted(rows, key=rank_score, reverse=True);
     if len(ordered) > 20 { ordered = ordered[0:20]; }
     return ordered;
 }

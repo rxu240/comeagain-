@@ -150,7 +150,7 @@ def:pub ResultsView(
                 </button>
                 <button
                     type="button"
-                    onClick={lambda e: MouseEvent { onReset(); }}
+                    onClick={lambda (e: MouseEvent) { onReset(); }}
                     className="glass-btn rounded-full h-11 px-6 cursor-pointer"
                 >
                     <span className="mono text-[11px] uppercase tracking-[0.2em] text-ink-600">
@@ -160,7 +160,7 @@ def:pub ResultsView(
                 {if not ranked {
                     <button
                         type="button"
-                        onClick={lambda e: MouseEvent { rankOpen = not rankOpen; }}
+                        onClick={lambda (e: MouseEvent) { rankOpen = not rankOpen; }}
                         className="glass-btn rounded-full h-11 px-6 cursor-pointer"
                     >
                         <span className="mono text-[11px] uppercase tracking-[0.2em] text-ink-600">
@@ -178,7 +178,7 @@ def:pub ResultsView(
                     <input
                         type="text"
                         value={rankName}
-                        onChange={lambda e: ChangeEvent { rankName = e.target.value; }}
+                        onChange={lambda (e: ChangeEvent) { rankName = e.target.value; }}
                         placeholder="Your name"
                         aria-label="Name for the leaderboard"
                         className="glass-quiet flex-1 min-w-0 rounded-2xl px-4 py-3 text-[14px] text-ink-900 placeholder:text-ink-400 outline-none border-0"

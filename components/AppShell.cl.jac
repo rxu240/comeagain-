@@ -73,7 +73,7 @@ def:pub AppShell() -> JsxElement {
                     error={error}
                     canRecord={canRecord}
                     purpose={purpose}
-                    onPurpose={lambda v: str { purpose = v; }}
+                    onPurpose={lambda (v: str) { purpose = v; }}
                     onStart={startRec}
                     onStop={stopRec}
                 />

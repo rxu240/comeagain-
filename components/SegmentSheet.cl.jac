@@ -94,7 +94,7 @@ def:pub SegmentSheet(
                     <div className="px-6 pb-2">
                         <Button
                             variant="ghost"
-                            onClick={lambda e: MouseEvent { onPlay(segment.start, segment.end); }}
+                            onClick={lambda (e: MouseEvent) { onPlay(segment.start, segment.end); }}
                             className="glass-btn rounded-full h-11 px-6 mono text-[11px] tracking-[0.2em] uppercase text-ink-600"
                         >
                             {"Play this line"}

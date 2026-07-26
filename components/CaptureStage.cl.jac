@@ -67,7 +67,7 @@ def:pub CaptureStage(
             <input
                 type="text"
                 value={purpose}
-                onChange={lambda e: ChangeEvent { onPurpose(e.target.value); }}
+                onChange={lambda (e: ChangeEvent) { onPurpose(e.target.value); }}
                 placeholder="What is this for? (optional)"
                 aria-label="What this recording is for"
                 className="glass-quiet w-full rounded-2xl px-4 py-3 text-[14px] text-ink-900 placeholder:text-ink-400 outline-none border-0"

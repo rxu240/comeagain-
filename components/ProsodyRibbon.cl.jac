@@ -171,7 +171,7 @@ def:pub ProsodyRibbon(
                     height="224"
                     fill="transparent"
                     className="cursor-pointer"
-                    onClick={lambda e: MouseEvent { onPick(seg.idx); }}
+                    onClick={lambda (e: MouseEvent) { onPick(seg.idx); }}
                 />
             }}
         </svg>

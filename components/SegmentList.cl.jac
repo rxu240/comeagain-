@@ -58,7 +58,7 @@ def:pub SegmentList(
                 <li key={"s" + String(i)}>
                     <button
                         type="button"
-                        onClick={lambda e: MouseEvent { onPick(seg.idx); }}
+                        onClick={lambda (e: MouseEvent) { onPick(seg.idx); }}
                         aria-current={seg.idx == activeIdx}
                         className={
                             "w-full text-left rounded-2xl px-4 py-3 cursor-pointer transition-colors "
