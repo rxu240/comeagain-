@@ -24,15 +24,8 @@ def:pub CaptureStage(
     purpose: str,
     onPurpose: Callable[[str], None],
     onStart: Callable[[], None],
-    onStop: Callable[[], None],
-    onFile: Callable[[any], None]
+    onStop: Callable[[], None]
 ) -> JsxElement {
-    def pickFile(e: ChangeEvent) {
-        files = e.target.files;
-        if files and files.length > 0 { onFile(files[0]); }
-        e.target.value = "";
-    }
-
     return <div className="flex flex-col items-center gap-9 pt-6">
         <header className="text-center px-2">
             <h1 className="display text-[2.5rem] leading-[1.1] text-ink-900">
@@ -56,7 +49,7 @@ def:pub CaptureStage(
 
         {if not canRecord {
             <p className="text-[13px] text-clay text-center max-w-[34ch]">
-                {"This browser will not give us a microphone. You can still upload a file below."}
+                {"This browser will not give us a microphone. Allow microphone access and reload the page."}
             </p>
         }}
 
@@ -79,18 +72,6 @@ def:pub CaptureStage(
                 aria-label="What this recording is for"
                 className="glass-quiet w-full rounded-2xl px-4 py-3 text-[14px] text-ink-900 placeholder:text-ink-400 outline-none border-0"
             />
-
-            <label className="glass-btn rounded-2xl h-12 grid place-items-center cursor-pointer">
-                <span className="mono text-[11px] uppercase tracking-[0.2em] text-ink-600">
-                    {"Upload a recording"}
-                </span>
-                <input
-                    type="file"
-                    accept="audio/*,video/mp4,.m4a,.mp3,.wav,.ogg,.webm"
-                    onChange={pickFile}
-                    className="sr-only"
-                />
-            </label>
         </div>
 
         <div className="w-full max-w-md px-2">

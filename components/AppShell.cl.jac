@@ -10,7 +10,7 @@ sv import from ..engine.model { TakeReport, RankRow }
 
 import from "..lib.audio" {
     captureSupported, beginCapture, endCapture, releaseMic,
-    liveLevel, decodeToPcm, looksLikeAudio
+    liveLevel, decodeToPcm
 }
 import from .CaptureStage { CaptureStage }
 import from .ResultsView { ResultsView }
@@ -50,7 +50,6 @@ def:pub AppShell() -> JsxElement {
     async def startRec() -> None;
     async def stopRec() -> None;
     async def rankTake(name: str) -> None;
-    def handleFile(file: any) -> None;
     def reset() -> None;
 
     shown = take as TakeReport;
@@ -77,7 +76,6 @@ def:pub AppShell() -> JsxElement {
                     onPurpose={lambda v: str { purpose = v; }}
                     onStart={startRec}
                     onStop={stopRec}
-                    onFile={handleFile}
                 />
             } else {
                 <ResultsView

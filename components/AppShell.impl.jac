@@ -35,16 +35,6 @@ impl AppShell.stopRec() -> None {
 }
 
 
-impl AppShell.handleFile(file: any) -> None {
-    if not looksLikeAudio(file) {
-        error = "That file is not audio we can read. Try mp3, m4a, wav, ogg or webm.";
-        return;
-    }
-    error = "";
-    analyse(file);
-}
-
-
 impl AppShell.analyse(source: any) -> None {
     busy = True;
     error = "";
