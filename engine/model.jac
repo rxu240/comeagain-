@@ -25,7 +25,7 @@ glob DIMENSION_NAMES: dict[str, str] = {
 };
 
 glob DIMENSION_BLURBS: dict[str, str] = {
-    "tone": "The overall colour a listener reads off your voice.",
+    "tone": "A read across the seven measured dimensions - not a separate measurement.",
     "pitch": "Where your voice sits and how far it travels.",
     "pacing": "Syllables per second while you are actually speaking.",
     "pausing": "How often you stop, and whether the stops land well.",
@@ -45,7 +45,8 @@ node Take {
         duration: float = 0.0,
         created_at: str = "",
         overall: float = 0.0,
-        summary: str = "";
+        summary: str = "",
+        transcript: str = "";
 }
 
 """A single utterance, bounded by the pauses on either side of it."""
@@ -56,7 +57,9 @@ node Segment {
         f_start: int = 0,
         f_end: int = 0,
         trail: float = 0.0,
-        score: float = 0.0;
+        score: float = 0.0,
+        text: str = "",
+        kind: str = "";
 }
 
 """One dimension's verdict, attached either to a Take or to a Segment."""
@@ -72,6 +75,42 @@ edge Holds {}
 edge Covers: Take --> Segment {}
 edge Scores: Segment --> Reading {}
 edge Rates: Take --> Reading {}
+
+
+# --- Transcript ------------------------------------------------------------
+
+"""One recognised word with the span it occupies in the take."""
+obj Word {
+    has text: str = "",
+        start: float = 0.0,
+        end: float = 0.0,
+        conf: float = 0.0;
+}
+
+"""One recognised sentence, and the melody its grammatical form implies.
+
+`kind` is the sentence form (`statement`, `yesno`, `wh`, `exclamation`,
+`fragment`); `expects` is the terminal contour that form should land on
+(`fall`, `rise`, `level`). They are separate because two different forms can
+want the same contour - a wh-question falls exactly like a statement.
+"""
+obj Utterance {
+    has text: str = "",
+        start: float = 0.0,
+        end: float = 0.0,
+        kind: str = "statement",
+        expects: str = "fall",
+        words: list[Word] = [];
+}
+
+"""The transcript for a take, plus an honest note on how it was produced."""
+obj Transcript {
+    has text: str = "",
+        utterances: list[Utterance] = [],
+        source: str = "none",
+        available: bool = False,
+        note: str = "";
+}
 
 
 # --- Wire objects ----------------------------------------------------------
@@ -110,6 +149,9 @@ obj SegmentReport {
         end: float = 0.0,
         score: float = 0.0,
         headline: str = "",
+        text: str = "",
+        kind: str = "",
+        words: list[Word] = [],
         dimensions: list[DimensionReport] = [],
         moments: list[Moment] = [];
 }
@@ -130,7 +172,10 @@ obj TakeReport {
         envelope: list[float] = [],
         voicedMask: list[int] = [],
         beats: list[float] = [],
-        coachedBy: str = "rules";
+        coachedBy: str = "rules",
+        transcript: str = "",
+        transcriptSource: str = "none",
+        transcriptNote: str = "";
 }
 
 """Coaching written for one speaker, one take."""

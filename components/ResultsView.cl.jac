@@ -161,6 +161,29 @@ def:pub ResultsView(
             onPick={pickSegment}
         />
 
+        {if take.transcript != "" {
+            <section className="glass-quiet rounded-3xl px-6 py-6">
+                <div className="flex items-baseline justify-between">
+                    <span className="eyebrow">Transcript</span>
+                    <span className="mono text-[10px] uppercase tracking-[0.18em] text-ink-400">
+                        {take.transcriptSource}
+                    </span>
+                </div>
+                <p className="mt-4 text-[14px] leading-relaxed text-ink-700">
+                    {take.transcript}
+                </p>
+            </section>
+        }}
+
+        {if take.transcriptNote != "" {
+            <section className="glass-quiet rounded-3xl px-6 py-5">
+                <span className="eyebrow">Transcript</span>
+                <p className="mt-3 text-[13px] leading-relaxed text-ink-400">
+                    {take.transcriptNote}
+                </p>
+            </section>
+        }}
+
         <SegmentSheet
             segment={selected}
             open={sheetOpen}

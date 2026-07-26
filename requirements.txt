@@ -9,3 +9,14 @@ numpy>=2.0
 # create_pipeline_tuning_options(). With 0.48 installed, `jac eject` and
 # `jac nacompile` fail; `jac start` is unaffected. Unpin once jaclang updates.
 llvmlite==0.44.0
+
+# Transcription. CTranslate2 CPU inference - no GPU, no API key, no per-minute
+# cost, and audio never leaves the machine. Runs at roughly 7x realtime on the
+# `base.en` model, so a 14 s take transcribes in about 2 s. It takes the same
+# float32 array the DSP front-end reads, which is why there is still no codec
+# and no ffmpeg in this image.
+faster-whisper==1.2.1
+
+# CMU Pronouncing Dictionary: lexical stress patterns, used to tell an accent
+# that landed on a content word from one that landed on "the".
+cmudict==1.1.3

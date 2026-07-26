@@ -16,9 +16,11 @@ import from engine.dimensions {
     TakeContext, build_context, window_of, score_window
 }
 import from engine.segmentation { segment_bounds, ribbon }
+import from engine.asr { transcribe, best_utterance, ASR_SIZE }
 import from engine.model {
     Take, Segment, Reading, Holds, Covers, Scores, Rates,
-    TakeReport, TakeSummary, SegmentReport, DimensionReport, Moment
+    TakeReport, TakeSummary, SegmentReport, DimensionReport, Moment,
+    Transcript, Word
 }
 import from engine.coach { coach_take }
 import from engine.scoring { r2 }
@@ -74,12 +76,22 @@ walker ScorePass {
             );
         }
 
+        here.text = w.text;
+        here.kind = w.kind;
+
+        words: list[Word] = [];
+        spoken = best_utterance(self.ctx.transcript, here.start, here.end);
+        if len(spoken) > 0 { words = spoken[0].words; }
+
         self.segments.append(SegmentReport(
             idx=here.idx,
             start=here.start,
             end=here.end,
             score=scored.overall,
             headline=scored.dimensions[0].headline,
+            text=w.text,
+            kind=w.kind,
+            words=words,
             dimensions=scored.dimensions,
             moments=scored.moments
         ));
@@ -98,8 +110,13 @@ walker:pub AnalyseTake {
     can run with Root entry {
         samples = decode_pcm(self.audio);
         fd = analyze_frames(samples);
-        ctx = build_context(fd);
+        # The transcript is what makes intonation and stress judgeable, so it
+        # runs before scoring and rides along in the context.
+        tr = transcribe(samples, ASR_SIZE);
+        ctx = build_context(fd, tr);
         bounds = segment_bounds(ctx);
+        # So take-level intonation judges the same windows the segments do.
+        ctx.bounds = bounds;
 
         now = datetime.now();
         take = (here +>:Holds:+> Take(
@@ -138,6 +155,7 @@ walker:pub AnalyseTake {
 
         advice = coach_take(overall_scored.overall, overall_scored.dimensions, self.purpose);
         take.summary = advice.summary;
+        take.transcript = tr.text;
 
         strands = ribbon(ctx);
         report (TakeReport(
@@ -155,7 +173,10 @@ walker:pub AnalyseTake {
             envelope=strands.envelope,
             voicedMask=strands.voiced,
             beats=strands.beats,
-            coachedBy=advice.source
+            coachedBy=advice.source,
+            transcript=tr.text,
+            transcriptSource=tr.source,
+            transcriptNote=tr.note
         ));
     }
 }
@@ -209,6 +230,7 @@ walker:pub LoadTake {
                 idx=seg.idx, start=seg.start, end=seg.end,
                 score=seg.score,
                 headline=dims[0].headline if len(dims) > 0 else "",
+                text=seg.text, kind=seg.kind,
                 dimensions=dims
             ));
         }
@@ -226,7 +248,9 @@ walker:pub LoadTake {
             overall=take.overall,
             summary=take.summary,
             dimensions=overall_dims,
-            segments=sorted(segments, key=lambda s: SegmentReport : s.idx)
+            segments=sorted(segments, key=lambda s: SegmentReport : s.idx),
+            transcript=take.transcript,
+            transcriptSource="stored" if take.transcript != "" else "none"
         );
     }
 }

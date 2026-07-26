@@ -28,19 +28,30 @@ def clamp(v: float, lo: float, hi: float) -> float {
 }
 
 
-"""Score `v` against a target band: ~100 inside, tapering to ~8 past the bounds."""
+"""Score `v` against a target band, spread across the usable range.
+
+The first version returned 90-100 for anything inside the target band and then
+fell away steeply, which left four fifths of the scale unreachable: "textbook"
+and "just barely acceptable" were ten points apart, and every dimension in
+normal speech reported in the nineties. That is why the scores looked
+meaningless.
+
+The scale now reads: **85-100** inside the band, **25-85** drifting out toward
+the failure bound, **under 25** past it. Continuous at both boundaries, with a
+floor so one bad number never reads as a flat zero.
+"""
 def band_score(v: float, t: Target) -> float {
     if v >= t.lo_ideal and v <= t.hi_ideal {
         centre = (t.lo_ideal + t.hi_ideal) / 2.0;
         half = max((t.hi_ideal - t.lo_ideal) / 2.0, 1e-6);
-        return clamp(100.0 - 8.0 * abs(v - centre) / half, 90.0, 100.0);
+        return clamp(100.0 - 15.0 * abs(v - centre) / half, 85.0, 100.0);
     }
     if v < t.lo_ideal {
         span = max(t.lo_ideal - t.lo_fail, 1e-6);
-        return clamp(30.0 + 60.0 * ((v - t.lo_fail) / span), 8.0, 90.0);
+        return clamp(25.0 + 60.0 * ((v - t.lo_fail) / span), 5.0, 85.0);
     }
     span = max(t.hi_fail - t.hi_ideal, 1e-6);
-    return clamp(30.0 + 60.0 * ((t.hi_fail - v) / span), 8.0, 90.0);
+    return clamp(25.0 + 60.0 * ((t.hi_fail - v) / span), 5.0, 85.0);
 }
 
 

@@ -93,8 +93,15 @@ def ribbon(ctx: TakeContext) -> Ribbon {
     }
 
     # Stressed syllables, so the ribbon can mark where the weight actually fell.
-    for i in range(len(ctx.nuclei)) {
-        if ctx.prom[i] > 0.55 {
+    # Ranked rather than thresholded: `prom` is a z-score, so a fixed cutoff on
+    # it selects a near-constant share of syllables whatever the speaker does
+    # (see engine/stress.jac). Taking the top third is the same intent stated
+    # honestly - these are the accents *relative to this take*.
+    if len(ctx.nuclei) >= 3 {
+        order = np.argsort(np.array(ctx.prom));
+        keep = max(len(ctx.nuclei) // 3, 1);
+        top: list[int] = order.tolist()[len(ctx.nuclei) - keep:len(ctx.nuclei)] as list[int];
+        for i in sorted(top) {
             out.beats.append(r2(float(ctx.nuclei[i]) * HOP_S));
         }
     }

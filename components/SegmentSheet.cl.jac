@@ -5,13 +5,48 @@ eight dimensions scored for this stretch alone, the moments flagged inside it,
 and a control that plays back only these seconds.
 """
 
-sv import from ..engine.model { SegmentReport }
+sv import from ..engine.model { SegmentReport, DimensionReport }
 import from ".ui.drawer" { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription }
 import from ".ui.button" { Button }
 import from .DimensionCard { DimensionCard }
 import from .ScoreCrest { bandText, bandLabel }
 import from .MomentList { MomentList }
 import from "..lib.format" { fmtRange }
+
+
+"""The sentence form, spelled out with the contour it implies.
+
+Naming the expected contour next to the words is the explanation for the
+intonation score: it says *why* this line was judged the way it was, rather than
+leaving the reader to infer the rule.
+"""
+def formLabel(kind: str) -> str {
+    if kind == "yesno" { return "Yes/no question - should rise"; }
+    if kind == "wh" { return "Wh-question - should fall, like a statement"; }
+    if kind == "statement" { return "Statement - should fall"; }
+    if kind == "exclamation" { return "Exclamation - should fall"; }
+    if kind == "fragment" { return "Unfinished phrase - may stay open"; }
+    return "";
+}
+
+
+"""The headline for this utterance: the weakest dimension's finding.
+
+Same reasoning as the list's sub-label - the tone headline is a mean over
+everything else and reads the same on nearly every line, so it makes a poor
+title for a panel about *this* line. When nothing is weak the tone verdict is
+the honest thing to show.
+"""
+def sheetTitle(seg: SegmentReport) -> str {
+    worst: DimensionReport | None = None;
+    for d in seg.dimensions {
+        if d.key == "tone" { continue; }
+        if worst == None or d.score < worst.score { worst = d; }
+    }
+    if worst == None { return seg.headline; }
+    if worst.score >= 80.0 { return seg.headline; }
+    return worst.headline;
+}
 
 
 def:pub SegmentSheet(
@@ -36,12 +71,25 @@ def:pub SegmentSheet(
                             {"Utterance " + String(segment.idx + 1) + " · " + fmtRange(segment.start, segment.end)}
                         </span>
                         <DrawerTitle className="display text-2xl mt-2 text-ink-900 text-left">
-                            {segment.headline}
+                            {sheetTitle(segment)}
                         </DrawerTitle>
                         <DrawerDescription className={"mono text-xs mt-1 text-left " + bandText(segment.dimensions[0].band)}>
                             {String(Math.round(segment.score)) + " / 100 · " + bandLabel(segment.dimensions[0].band)}
                         </DrawerDescription>
                     </DrawerHeader>
+
+                    if segment.text != "" {
+                        <div className="px-6 pb-1">
+                            <blockquote className="border-l-2 border-brass pl-4 py-1">
+                                <p className="text-[15px] leading-relaxed text-ink-700 italic">
+                                    {segment.text}
+                                </p>
+                                <span className="mono text-[10px] uppercase tracking-[0.18em] text-ink-400">
+                                    {formLabel(segment.kind)}
+                                </span>
+                            </blockquote>
+                        </div>
+                    }
 
                     <div className="px-6 pb-2">
                         <Button
