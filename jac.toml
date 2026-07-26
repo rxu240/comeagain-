@@ -3,6 +3,12 @@ name = "tonecraft"
 entry-point = "main.jac"
 kind = "fullstack"
 
+[dependencies]
+numpy = ">=2.0"
+llvmlite = "==0.44.0"
+"faster-whisper" = "==1.2.1"
+cmudict = "==1.1.3"
+
 [jac-shadcn]
 style = "nova"
 baseColor = "neutral"
