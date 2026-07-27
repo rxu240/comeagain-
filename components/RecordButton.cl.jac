@@ -1,4 +1,4 @@
-"""The record control: a beige glass disc that answers to your voice.
+"""The record control: a glowing orb that answers to your voice.
 
 While recording, the outer ring scales with live input level, so the button is
 also the first proof that the app is listening to prosody rather than words.
@@ -30,6 +30,12 @@ def:pub RecordButton(
 
     return <div className="flex flex-col items-center gap-4">
         <div className="relative grid place-items-center w-[188px] h-[188px]">
+            <span
+                aria-hidden="true"
+                className="absolute inset-2 rounded-full blur-2xl opacity-70"
+                style={{"background": "radial-gradient(circle, var(--brass-lt) 0%, var(--brass) 55%, transparent 75%)"}}
+            ></span>
+
             {if recording {
                 <span
                     aria-hidden="true"
@@ -51,15 +57,15 @@ def:pub RecordButton(
                 disabled={busy}
                 aria-pressed={recording}
                 aria-label={"Stop recording" if recording else "Start recording"}
-                className="glass-btn relative w-[152px] h-[152px] rounded-full grid place-items-center cursor-pointer"
+                className="glow-orb relative z-10 w-[152px] h-[152px] rounded-full grid place-items-center cursor-pointer"
             >
                 <span className="flex flex-col items-center gap-2">
                     {if recording {
                         <span className="w-5 h-5 rounded-[5px] bg-clay" aria-hidden="true"></span>
                     } else {
-                        <span className="w-4 h-4 rounded-full bg-brass" aria-hidden="true"></span>
+                        <span className="w-4 h-4 rounded-full bg-ink-900" aria-hidden="true"></span>
                     }}
-                    <span className="mono text-[10px] uppercase tracking-[0.24em] text-ink-600">
+                    <span className="mono text-[10px] uppercase tracking-[0.24em] text-ink-900">
                         {caption}
                     </span>
                 </span>

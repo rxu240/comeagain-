@@ -118,26 +118,6 @@ def:pub ResultsView(
     mechanics = mechanicsOf(take.dimensions);
 
     return <div className="flex flex-col gap-6">
-        <ScoreCrest
-            overall={take.overall}
-            tone={tone}
-            summary={take.summary}
-            label={take.label}
-            duration={take.duration}
-            coachedBy={take.coachedBy}
-        />
-
-        <ProsodyRibbon
-            contour={take.contour}
-            envelope={take.envelope}
-            voiced={take.voicedMask}
-            beats={take.beats}
-            duration={take.duration}
-            segments={take.segments}
-            activeIdx={activeIdx}
-            onPick={pickSegment}
-        />
-
         {if audioUrl != "" {
             <div className="flex gap-2">
                 <button
@@ -196,6 +176,26 @@ def:pub ResultsView(
                 </div>
             </section>
         }}
+
+        <ScoreCrest
+            overall={take.overall}
+            tone={tone}
+            summary={take.summary}
+            label={take.label}
+            duration={take.duration}
+            coachedBy={take.coachedBy}
+        />
+
+        <ProsodyRibbon
+            contour={take.contour}
+            envelope={take.envelope}
+            voiced={take.voicedMask}
+            beats={take.beats}
+            duration={take.duration}
+            segments={take.segments}
+            activeIdx={activeIdx}
+            onPick={pickSegment}
+        />
 
         {if ranked {
             <LeaderboardPanel rows={ranks} me={rankName.trim()}/>

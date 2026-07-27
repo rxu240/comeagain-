@@ -78,6 +78,33 @@ impl AppShell.analyse(source: any) -> None {
 }
 
 
+impl AppShell.generatePrompt() -> None {
+    promptBusy = True;
+    try {
+        result = root spawn GeneratePrompt();
+        if result.reports and len(result.reports) > 0 {
+            promptText = result.reports[0];
+        }
+    } except Exception as err {
+        error = "Could not generate a prompt. (" + String(err) + ")";
+    }
+    promptBusy = False;
+}
+
+
+impl AppShell.openLeaderboard() -> None {
+    leaderboardOpen = True;
+    try {
+        result = root spawn Leaderboard();
+        if result.reports and len(result.reports) > 0 {
+            leaderboardRows = result.reports[0];
+        }
+    } except Exception as err {
+        error = "Could not reach the leaderboard. (" + String(err) + ")";
+    }
+}
+
+
 impl AppShell.rankTake(name: str) -> None {
     if take == None { return; }
     current = take as TakeReport;
@@ -101,6 +128,8 @@ impl AppShell.reset() -> None {
     audioUrl = "";
     ranks = [];
     ranked = False;
+    promptText = "";
+    promptBusy = False;
     elapsed = 0.0;
     level = 0.0;
     status = "";

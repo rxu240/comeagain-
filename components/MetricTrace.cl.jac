@@ -85,15 +85,26 @@ def tickTimes(duration: float) -> list[float] {
 }
 
 
-"""One dimension's path: a flat run per segment, broken across the pauses."""
-def tracePath(segments: list[SegmentReport], key: str, span: float) -> str {
-    out = "";
+"""One dimension's readings: one point per segment, at that segment's
+midpoint timestamp."""
+def tracePoints(segments: list[SegmentReport], key: str, span: float) -> list[list[float]] {
+    pts: list[list[float]] = [];
     for seg in segments {
         s = scoreOf(seg.dimensions, key);
         if s < 0.0 { continue; }
-        y = n1(yScore(s));
-        out = out + "M " + n1(xAt(seg.start, span)) + " " + y
-                  + " L " + n1(xAt(seg.end, span)) + " " + y + " ";
+        mid = (seg.start + seg.end) / 2.0;
+        pts.push([xAt(mid, span), yScore(s)]);
+    }
+    return pts;
+}
+
+
+"""Connect the points into a line - only meaningful with more than one."""
+def tracePath(pts: list[list[float]]) -> str {
+    out = "";
+    for (i, p) in enumerate(pts) {
+        cmd = "M " if i == 0 else " L ";
+        out = out + cmd + n1(p[0]) + " " + n1(p[1]) + " ";
     }
     return out;
 }
@@ -155,14 +166,27 @@ def:pub MetricTrace(
             }}
 
             {for (i, mk) in enumerate(MECH_KEYS) {
-                <path
-                    key={"trace" + String(i)}
-                    d={tracePath(segments, mk, span)}
-                    fill="none"
-                    stroke={MECH_COLORS[mk]}
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                />
+                <g key={"trace" + String(i)}>
+                    {if len(tracePoints(segments, mk, span)) > 1 {
+                        <path
+                            d={tracePath(tracePoints(segments, mk, span))}
+                            fill="none"
+                            stroke={MECH_COLORS[mk]}
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        />
+                    }}
+                    {for (j, p) in enumerate(tracePoints(segments, mk, span)) {
+                        <circle
+                            key={"pt" + String(i) + "-" + String(j)}
+                            cx={n1(p[0])}
+                            cy={n1(p[1])}
+                            r="3.5"
+                            fill={MECH_COLORS[mk]}
+                        />
+                    }}
+                </g>
             }}
 
             {if showPlayhead {

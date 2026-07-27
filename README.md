@@ -1,7 +1,7 @@
 # TONECRAFT
 
-**Delivery analysis for people who speak for a living.** Record or upload a
-take; TONECRAFT measures eight dimensions of *how* you said it — tone, pitch,
+**Delivery analysis for people who speak for a living.** Record a take;
+TONECRAFT measures eight dimensions of *how* you said it — tone, pitch,
 pacing, pausing, volume, intonation, stress, articulation — and reports on each
 utterance separately, so the feedback lands on a specific line rather than on
 the recording as a whole.
@@ -14,6 +14,42 @@ way — only the text tells them apart. Transcription runs locally, so it costs
 nothing per minute and the audio never leaves the machine.
 
 Built at JacHacks SF. Server and client are both written in Jac.
+
+---
+
+## Quick start for judges
+
+Five commands, no account or API key needed. Requires **Python 3.12+** and a
+working microphone if you want to record live; everything else runs offline.
+
+```bash
+git clone <this-repo-url> tonecraft && cd tonecraft
+python -m venv .venv
+.venv/bin/pip install -r requirements.txt      # Windows: .venv\Scripts\pip install -r requirements.txt
+jac install                                    # pulls npm deps + Bun for the client, one-time
+jac start --dev main.jac                       # http://localhost:8000
+```
+
+First boot compiles the client and downloads the `faster-whisper` speech model
+on first use, so give it 30–60 seconds before the page responds. Open
+**http://localhost:8000**, allow microphone access when the browser asks, and
+press **Record** for at least 10 seconds — anything shorter is rejected with an
+on-screen message rather than silently scored.
+
+**No microphone, or evaluating headless?** The repo ships a known-good sample
+recording and an assertion harness so the analysis can be checked without
+touching audio hardware:
+
+```bash
+jac run verify.jac       # real speech, prints per-sentence scores, asserts nothing regressed
+jac run selftest.jac     # synthesises a take and exercises the full API round trip
+```
+
+No `ANTHROPIC_API_KEY` is required for any of this — every score comes from
+signal processing, and coaching falls back to a deterministic rule-based writer
+without one. Setting the key (see **Run it** below) upgrades the coaching
+summary and the "Generate a prompt" button to LLM-written text; nothing else
+changes and nothing breaks without it.
 
 ---
 
@@ -326,7 +362,8 @@ server stopped, not while it is running.
 - The 2–6 kHz articulation proxy responds to microphone and room as well as to
   the speaker; compare takes recorded on the same setup.
 - Analysis is capped at 180 seconds per take.
-- The **microphone capture path is not verified.** Upload is tested end to end;
-  no audio input device was available in the build environment, so recording,
-  the level meter, and audio playback render and type-check but have never been
-  run against live input.
+- The **microphone capture path is not verified against live hardware.** No
+  audio input device was available in the build environment, so recording, the
+  level meter, and audio playback render and type-check but have only been
+  exercised through `verify.jac`/`selftest.jac`'s synthetic and pre-recorded
+  audio, not a live microphone.

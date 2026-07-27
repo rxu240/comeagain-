@@ -18,21 +18,21 @@
 --------------------------------------------------------------------------- */
 
 :root {
-    --sand-50:  #FAF6EF;
-    --sand-100: #F2ECE1;
-    --sand-200: #E7DDCC;
-    --sand-300: #D6C8B1;
-    --sand-400: #B9A88B;
+    --sand-50:  #F8F7FC;
+    --sand-100: #F0EEFA;
+    --sand-200: #E6E3F5;
+    --sand-300: #D2CCEC;
+    --sand-400: #A9A0DA;
 
-    --ink-900: #241F19;
-    --ink-700: #453D33;
-    --ink-600: #5E5548;
-    --ink-400: #8B8172;
+    --ink-900: #262444;
+    --ink-700: #423F66;
+    --ink-600: #5B5782;
+    --ink-400: #8985AC;
 
-    --brass:    #A67C34;
-    --brass-lt: #C9A45E;
-    --sage:     #4E6B57;
-    --clay:     #A65441;
+    --brass:    #6D63E0;
+    --brass-lt: #8F87ED;
+    --sage:     #3F9E8D;
+    --clay:     #E0637A;
 
     /* shadcn surface tokens, retuned to the beige ground */
     --background: var(--sand-200);
@@ -115,9 +115,9 @@
         /* Light through linen: three soft pools give the glass something to
            refract. Without depth behind it, backdrop-filter reads as flat. */
         background-image:
-            radial-gradient(58rem 40rem at 12% -8%, rgba(255, 253, 247, 0.95), transparent 62%),
-            radial-gradient(44rem 34rem at 105% 8%, rgba(214, 200, 177, 0.62), transparent 58%),
-            radial-gradient(52rem 46rem at 50% 118%, rgba(185, 168, 139, 0.42), transparent 64%);
+            radial-gradient(58rem 40rem at 12% -8%, rgba(255, 255, 255, 0.95), transparent 62%),
+            radial-gradient(44rem 34rem at 105% 8%, rgba(226, 222, 245, 0.65), transparent 58%),
+            radial-gradient(52rem 46rem at 50% 118%, rgba(169, 160, 218, 0.38), transparent 64%);
         background-attachment: fixed;
         min-height: 100svh;
         overflow-x: hidden;
@@ -142,7 +142,7 @@
     }
 
     ::selection {
-        background: rgba(166, 124, 52, 0.22);
+        background: rgba(109, 99, 224, 0.22);
     }
 }
 
@@ -150,41 +150,41 @@
     /* The glass system. One recipe, three weights. */
     .glass {
         background-image: linear-gradient(148deg,
-            rgba(255, 252, 246, 0.66),
-            rgba(240, 232, 218, 0.34));
+            rgba(255, 255, 255, 0.70),
+            rgba(230, 226, 247, 0.34));
         backdrop-filter: blur(18px) saturate(118%);
         -webkit-backdrop-filter: blur(18px) saturate(118%);
-        border: 1px solid rgba(255, 253, 248, 0.62);
+        border: 1px solid rgba(255, 255, 255, 0.66);
         box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.78),
-            inset 0 -1px 0 rgba(150, 130, 100, 0.10),
-            0 14px 34px -16px rgba(74, 58, 36, 0.34);
+            inset 0 1px 0 rgba(255, 255, 255, 0.80),
+            inset 0 -1px 0 rgba(90, 80, 160, 0.10),
+            0 14px 34px -16px rgba(40, 32, 90, 0.28);
     }
 
     .glass-quiet {
         background-image: linear-gradient(148deg,
-            rgba(255, 252, 246, 0.42),
-            rgba(240, 232, 218, 0.20));
+            rgba(255, 255, 255, 0.46),
+            rgba(230, 226, 247, 0.20));
         backdrop-filter: blur(12px) saturate(110%);
         -webkit-backdrop-filter: blur(12px) saturate(110%);
-        border: 1px solid rgba(255, 253, 248, 0.46);
+        border: 1px solid rgba(255, 255, 255, 0.50);
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
     }
 
-    /* The beige glass button. */
+    /* The lavender glass button. */
     .glass-btn {
         position: relative;
         background-image: linear-gradient(150deg,
-            rgba(255, 253, 248, 0.80),
-            rgba(231, 221, 204, 0.44));
+            rgba(255, 255, 255, 0.82),
+            rgba(224, 219, 246, 0.44));
         backdrop-filter: blur(16px) saturate(125%);
         -webkit-backdrop-filter: blur(16px) saturate(125%);
-        border: 1px solid rgba(255, 253, 248, 0.72);
+        border: 1px solid rgba(255, 255, 255, 0.74);
         color: var(--ink-900);
         box-shadow:
             inset 0 1px 0 rgba(255, 255, 255, 0.9),
-            inset 0 -2px 4px rgba(150, 130, 100, 0.12),
-            0 10px 24px -12px rgba(74, 58, 36, 0.40);
+            inset 0 -2px 4px rgba(90, 80, 160, 0.12),
+            0 10px 24px -12px rgba(40, 32, 90, 0.34);
         transition: transform 180ms cubic-bezier(.2,.7,.3,1),
                     box-shadow 180ms cubic-bezier(.2,.7,.3,1),
                     border-color 180ms ease;
@@ -192,22 +192,56 @@
 
     .glass-btn:hover:not(:disabled) {
         transform: translateY(-1px);
-        border-color: rgba(201, 164, 94, 0.75);
+        border-color: rgba(143, 135, 237, 0.75);
         box-shadow:
             inset 0 1px 0 rgba(255, 255, 255, 0.95),
-            inset 0 -2px 4px rgba(150, 130, 100, 0.10),
-            0 16px 32px -14px rgba(74, 58, 36, 0.44);
+            inset 0 -2px 4px rgba(90, 80, 160, 0.10),
+            0 16px 32px -14px rgba(40, 32, 90, 0.38);
     }
 
     .glass-btn:active:not(:disabled) {
         transform: translateY(1px) scale(0.995);
         box-shadow:
-            inset 0 2px 6px rgba(150, 130, 100, 0.22),
-            0 6px 14px -10px rgba(74, 58, 36, 0.40);
+            inset 0 2px 6px rgba(90, 80, 160, 0.22),
+            0 6px 14px -10px rgba(40, 32, 90, 0.34);
     }
 
     .glass-btn:disabled {
         opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* The glowing orb: the wireframe's soft luminous record sphere. */
+    .glow-orb {
+        position: relative;
+        background: radial-gradient(circle at 36% 30%,
+            rgba(255, 255, 255, 0.95),
+            rgba(199, 193, 241, 0.65) 45%,
+            rgba(109, 99, 224, 0.55) 78%,
+            rgba(87, 79, 199, 0.5) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.65);
+        box-shadow:
+            0 0 60px 10px rgba(109, 99, 224, 0.32),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9),
+            inset 0 -10px 30px rgba(87, 79, 199, 0.22);
+        transition: transform 180ms cubic-bezier(.2,.7,.3,1),
+                    box-shadow 180ms cubic-bezier(.2,.7,.3,1);
+    }
+
+    .glow-orb:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow:
+            0 0 72px 14px rgba(109, 99, 224, 0.42),
+            inset 0 1px 0 rgba(255, 255, 255, 0.95),
+            inset 0 -10px 30px rgba(87, 79, 199, 0.28);
+    }
+
+    .glow-orb:active:not(:disabled) {
+        transform: translateY(1px) scale(0.99);
+    }
+
+    .glow-orb:disabled {
+        opacity: 0.6;
         cursor: not-allowed;
     }
 
@@ -278,4 +312,20 @@
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
     }
+}
+
+/* The cursor: a miniature of the glowing record orb, everywhere in the app.
+   Unlayered on purpose - Tailwind's `.cursor-pointer` utility lives in
+   @layer utilities and would otherwise win the cascade over a rule in
+   @layer base regardless of source order. */
+:root {
+    --cursor-orb: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cdefs%3E%3CradialGradient id='c' cx='36%25' cy='32%25' r='70%25'%3E%3Cstop offset='0%25' stop-color='%23ffffff'/%3E%3Cstop offset='45%25' stop-color='%23c7c1f1'/%3E%3Cstop offset='100%25' stop-color='%236d63e0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='14' cy='14' r='12' fill='url(%23c)' stroke='%23ffffff' stroke-opacity='0.55'/%3E%3C/svg%3E") 14 14;
+}
+
+body {
+    cursor: var(--cursor-orb), auto;
+}
+
+a, button:not(:disabled), .cursor-pointer {
+    cursor: var(--cursor-orb), pointer;
 }

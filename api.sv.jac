@@ -22,7 +22,7 @@ import from engine.model {
     TakeReport, TakeSummary, SegmentReport, DimensionReport, Moment,
     RankRow, Transcript, Word
 }
-import from engine.coach { coach_take }
+import from engine.coach { coach_take, generate_speaking_prompt }
 import from engine.scoring { r2 }
 
 
@@ -195,6 +195,16 @@ walker:pub AnalyseTake {
             transcriptSource=tr.source,
             transcriptNote=tr.note
         ));
+    }
+}
+
+
+"""A short speaking prompt for someone who has nothing prepared to say."""
+walker:pub GeneratePrompt {
+    has reports: list[str] = [];
+
+    can run with Root entry {
+        report generate_speaking_prompt();
     }
 }
 

@@ -9,8 +9,15 @@ scores and asked to phrase them.
 
 import os;
 import importlib;
+import random;
 import from engine.model { DimensionReport, Coaching }
 import from engine.scoring { fmt1 }
+
+glob PROMPT_FALLBACKS: list[str] = [
+    "Describe the best meal you have ever eaten, from the moment you sat down to the last bite. Include what it smelled like, who you were with, and one specific detail that made it memorable. Speak as if you are convincing a friend to try that same dish next week.",
+    "Explain how to tie your shoelaces to someone who has never seen a shoe before. Walk through each step in order, name every part you touch, and warn them about the one mistake beginners always make. Speak slowly enough that a stranger could follow along with their eyes closed.",
+    "Tell the story of a time you got lost - somewhere in a new city, in a building, anywhere. Describe how you realized you were lost, what you did first, and how it finally resolved. End with one sentence about what you would do differently if it happened again today."
+];
 
 glob DRILLS: dict[str, str] = {
     "pacing-fast": "Read one paragraph out loud at half your natural speed. Then take it to three-quarters. That is your real presenting pace.",
@@ -140,5 +147,33 @@ def coach_take(overall: float, dims: list[DimensionReport], context: str) -> Coa
         return out;
     } except Exception {
         return fallback;
+    }
+}
+
+
+"""Load the byLLM prompt writer on demand; None when byllm is not installed."""
+def load_prompt_writer() -> any {
+    try {
+        module = importlib.import_module("engine.llm_coach");
+        return module.generate_prompt;
+    } except Exception {
+        return None;
+    }
+}
+
+
+"""A short speaking prompt: LLM when configured, a canned one otherwise."""
+def generate_speaking_prompt() -> str {
+    if not llm_available() { return random.choice(PROMPT_FALLBACKS); }
+
+    writer = load_prompt_writer();
+    if not writer { return random.choice(PROMPT_FALLBACKS); }
+
+    try {
+        out = String(writer()).strip();
+        if out == "" { return random.choice(PROMPT_FALLBACKS); }
+        return out;
+    } except Exception {
+        return random.choice(PROMPT_FALLBACKS);
     }
 }

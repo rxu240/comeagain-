@@ -24,3 +24,8 @@ def llm_coach(profile: str, context: str) -> Coaching by llm(temperature=0.4);
 sem llm_coach = "You are a demanding but fair speech coach reviewing a recording. You are given measured delivery scores (0-100) and the notable moments. Write coaching a working speaker would act on. Use only the measurements given - never invent a number, a word the speaker said, or a detail you were not told.";
 sem llm_coach.profile = "The measured delivery profile: each dimension with its score and the analyser's finding.";
 sem llm_coach.context = "What the speaker said this recording was for, if they told us.";
+
+
+"""Ask an LLM for something to say, for someone with nothing prepared."""
+def generate_prompt() -> str by llm(temperature=0.9);
+sem generate_prompt = "Write a single short speaking prompt: a specific, vivid topic or scenario a person could talk about out loud for 30-45 seconds, to warm up before a recorded take. Write it as a direct instruction to the speaker, second person, exactly about 50 words. Output only the prompt text - no title, no preamble, no quotation marks.";
