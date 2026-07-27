@@ -12,10 +12,12 @@ read as one instrument: word lighting up above, its line moving below.
 """
 
 sv import from ..engine.model { SegmentReport, DimensionReport }
+import from "..lib.format" { fmtTime }
 
 glob VIEW_W: float = 1000.0;
 glob PLOT_TOP: float = 12.0;
 glob PLOT_BOT: float = 172.0;
+glob Y_TICKS: list[float] = [100.0, 75.0, 50.0, 25.0, 0.0];
 
 glob MECH_KEYS: list[str] = [
     "pitch", "pacing", "pausing", "volume", "intonation", "stress", "articulation"
@@ -76,6 +78,13 @@ def scoreOf(dims: list[DimensionReport], key: str) -> float {
 }
 
 
+"""Five evenly spaced timestamps across the take, for the x-axis row."""
+def tickTimes(duration: float) -> list[float] {
+    d = duration if duration > 0.1 else 1.0;
+    return [0.0, d * 0.25, d * 0.5, d * 0.75, d];
+}
+
+
 """One dimension's path: a flat run per segment, broken across the pauses."""
 def tracePath(segments: list[SegmentReport], key: str, span: float) -> str {
     out = "";
@@ -100,6 +109,7 @@ def:pub MetricTrace(
     span = duration if duration > 0.1 else 1.0;
     showPlayhead = time >= 0.0;
     playX = n1(xAt(time, span));
+    ticks = tickTimes(duration);
 
     return <figure className="glass rounded-3xl overflow-hidden m-0">
         <figcaption className="flex items-baseline justify-between px-5 pt-4 pb-2">
@@ -107,17 +117,30 @@ def:pub MetricTrace(
             <span className="eyebrow">{String(len(segments)) + " utterances"}</span>
         </figcaption>
 
-        <svg
-            viewBox="0 0 1000 184"
-            preserveAspectRatio="none"
-            role="img"
-            aria-label="Delivery metric scores across the recording"
-            className="block w-full h-[168px] sm:h-[196px] touch-manipulation"
-        >
-            <line
-                x1="0" y1={String(yScore(50.0))} x2="1000" y2={String(yScore(50.0))}
-                stroke="#8B8172" strokeOpacity="0.28" strokeWidth="1" strokeDasharray="3 7"
-            />
+        <div className="flex px-5">
+            <div className="flex flex-col justify-between shrink-0 w-7 pr-2 pt-[11px] pb-[11px] sm:pt-[13px] sm:pb-[13px] h-[168px] sm:h-[196px]">
+                {for (i, yt) in enumerate(Y_TICKS) {
+                    <span key={"yt" + String(i)} className="mono text-[10px] text-ink-400 text-right leading-none">
+                        {String(int(yt))}
+                    </span>
+                }}
+            </div>
+
+            <svg
+                viewBox="0 0 1000 184"
+                preserveAspectRatio="none"
+                role="img"
+                aria-label="Delivery metric scores across the recording"
+                className="block w-full min-w-0 h-[168px] sm:h-[196px] touch-manipulation"
+            >
+            {for (i, yt) in enumerate(Y_TICKS) {
+                <line
+                    key={"grid" + String(i)}
+                    x1="0" y1={String(yScore(yt))} x2="1000" y2={String(yScore(yt))}
+                    stroke="#8B8172" strokeOpacity={0.32 if yt == 50.0 else 0.16} strokeWidth="1"
+                    strokeDasharray="3 7"
+                />
+            }}
 
             {for (i, seg) in enumerate(segments) {
                 <rect
@@ -161,12 +184,15 @@ def:pub MetricTrace(
                     onClick={lambda (e: MouseEvent) { onPick(seg.idx); }}
                 />
             }}
-        </svg>
+            </svg>
+        </div>
 
-        <div className="flex items-center justify-between px-5 pt-1">
-            <span className="mono text-[11px] text-ink-400">100</span>
-            <span className="mono text-[11px] text-ink-400">{"tap a band to inspect"}</span>
-            <span className="mono text-[11px] text-ink-400">0</span>
+        <div className="flex items-center justify-between pl-14 pr-5 pt-1">
+            {for (i, t) in enumerate(ticks) {
+                <span key={"xt" + String(i)} className="mono text-[10px] text-ink-400">
+                    {fmtTime(t)}
+                </span>
+            }}
         </div>
 
         <ul className="list-none p-0 m-0 mt-3 px-5 pb-4 flex flex-wrap gap-x-4 gap-y-2">
