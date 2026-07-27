@@ -22,9 +22,18 @@ Built at JacHacks SF. Server and client are both written in Jac.
 Five commands, no account or API key needed. Requires **Python 3.12+** and a
 working microphone if you want to record live; everything else runs offline.
 
+**Check your Python version first** — `python --version`. If it's not 3.12+
+(very common: many machines default to an older interpreter even with 3.12
+installed alongside it), point the venv at 3.12 explicitly instead of plain
+`python`: `py -3.12 -m venv .venv` on Windows, or `python3.12 -m venv .venv`
+on macOS/Linux. Using the wrong interpreter here is the single most likely
+reason `pip install` fails below — `jaclang==0.16.7` has no build for
+anything older than 3.12 and pip's error message ("no matching distribution")
+doesn't say why.
+
 ```bash
 git clone <this-repo-url> tonecraft && cd tonecraft
-python -m venv .venv
+python3.12 -m venv .venv                       # Windows: py -3.12 -m venv .venv
 .venv/bin/pip install -r requirements.txt      # Windows: .venv\Scripts\pip install -r requirements.txt
 jac install                                    # pulls npm deps + Bun for the client, one-time
 jac start --dev main.jac                       # http://localhost:8000
