@@ -13,6 +13,7 @@ import from .SegmentList { SegmentList }
 import from .SegmentSheet { SegmentSheet }
 import from .MomentList { MomentList }
 import from .LiveTranscript { LiveTranscript }
+import from .MetricTrace { MetricTrace }
 import from .Leaderboard { LeaderboardPanel }
 
 
@@ -208,6 +209,14 @@ def:pub ResultsView(
                 time={playTime}
             />
         }}
+
+        <MetricTrace
+            segments={take.segments}
+            duration={take.duration}
+            activeIdx={activeIdx}
+            time={playTime}
+            onPick={pickSegment}
+        />
 
         {if len(take.coaching) > 0 {
             <section className="glass rounded-3xl px-6 py-6">
