@@ -167,6 +167,8 @@ obj SegmentReport {
         headline: str = "",
         text: str = "",
         kind: str = "",
+        rate: float = 0.0,
+        pitchSt: float = 0.0,
         words: list[Word] = [],
         dimensions: list[DimensionReport] = [],
         moments: list[Moment] = [];
@@ -191,7 +193,11 @@ obj TakeReport {
         coachedBy: str = "rules",
         transcript: str = "",
         transcriptSource: str = "none",
-        transcriptNote: str = "";
+        transcriptNote: str = "",
+        mode: str = "vc",
+        attention: float = 0.0,
+        attentionHeadline: str = "",
+        attentionDetail: str = "";
 }
 
 """Coaching written for one speaker, one take."""

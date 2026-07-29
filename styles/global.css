@@ -34,6 +34,12 @@
     --sage:     #3F9E8D;
     --clay:     #E0637A;
 
+    /* Practice-mode accents. VC mode re-tints --brass orange app-wide;
+       girlfriend mode keeps the base palette and only tints the toggle thumb. */
+    --vc-orange:    #E08A3E;
+    --vc-orange-lt: #F0A868;
+    --mode-accent:  var(--clay);
+
     /* shadcn surface tokens, retuned to the beige ground */
     --background: var(--sand-200);
     --foreground: var(--ink-900);
@@ -74,6 +80,7 @@
     --color-brass-lt: var(--brass-lt);
     --color-sage: var(--sage);
     --color-clay: var(--clay);
+    --color-mode-accent: var(--mode-accent);
 
     --color-background: var(--background);
     --color-foreground: var(--foreground);
@@ -243,6 +250,36 @@
     .glow-orb:disabled {
         opacity: 0.6;
         cursor: not-allowed;
+    }
+
+    /* VC mode: re-tint the accent from brass-purple to orange. The mic orb's
+       gradient is hand-tuned rather than var()-driven, so it gets its own
+       override rather than inheriting --brass automatically. */
+    .mode-vc {
+        --brass: var(--vc-orange);
+        --brass-lt: var(--vc-orange-lt);
+        --accent: var(--vc-orange);
+        --ring: var(--vc-orange);
+        --mode-accent: var(--vc-orange);
+    }
+
+    .mode-vc .glow-orb {
+        background: radial-gradient(circle at 36% 30%,
+            rgba(255, 255, 255, 0.95),
+            rgba(247, 214, 176, 0.68) 45%,
+            rgba(224, 138, 62, 0.55) 78%,
+            rgba(199, 113, 34, 0.5) 100%);
+        box-shadow:
+            0 0 60px 10px rgba(224, 138, 62, 0.32),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9),
+            inset 0 -10px 30px rgba(199, 113, 34, 0.22);
+    }
+
+    .mode-vc .glow-orb:hover:not(:disabled) {
+        box-shadow:
+            0 0 72px 14px rgba(224, 138, 62, 0.42),
+            inset 0 1px 0 rgba(255, 255, 255, 0.95),
+            inset 0 -10px 30px rgba(199, 113, 34, 0.28);
     }
 
     .display {

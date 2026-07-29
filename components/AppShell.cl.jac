@@ -16,6 +16,7 @@ import from "..lib.cursorFlag" { startCursorFlag }
 import from .CaptureStage { CaptureStage }
 import from .ResultsView { ResultsView }
 import from .Leaderboard { LeaderboardPanel }
+import from .ModeToggle { ModeToggle }
 
 glob _startedAt: float = 0.0;
 glob _ticker: any = None;
@@ -33,6 +34,7 @@ def haltTicker() -> None {
 def:pub AppShell() -> JsxElement {
     has take: TakeReport | None = None,
         audioUrl: str = "",
+        mode: str = "vc",
         purpose: str = "",
         recording: bool = False,
         elapsed: float = 0.0,
@@ -62,16 +64,20 @@ def:pub AppShell() -> JsxElement {
     def reset() -> None;
 
     shown = take as TakeReport;
+    shellClass = "relative z-10 min-h-svh " + ("mode-vc" if mode == "vc" else "mode-girlfriend");
 
-    return <div className="relative z-10 min-h-svh">
-        <header className="px-5 pt-7 pb-2 flex items-center justify-between">
-            <span className="display text-[15px] tracking-tight text-ink-700">
+    return <div className={shellClass}>
+        <header className="px-5 pt-7 pb-2 grid grid-cols-3 items-center">
+            <span className="display text-[15px] tracking-tight text-ink-700 justify-self-start">
                 {"comeagain?"}
+            </span>
+            <span className="justify-self-center">
+                <ModeToggle mode={mode} onChange={lambda (v: str) { mode = v; }}/>
             </span>
             <button
                 type="button"
                 onClick={openLeaderboard}
-                className="eyebrow cursor-pointer bg-transparent border-0 p-0"
+                className="eyebrow cursor-pointer bg-transparent border-0 p-0 justify-self-end"
             >
                 {"Leaderboard"}
             </button>
@@ -99,6 +105,7 @@ def:pub AppShell() -> JsxElement {
                         status={status}
                         error={error}
                         canRecord={canRecord}
+                        mode={mode}
                         purpose={purpose}
                         onPurpose={lambda (v: str) { purpose = v; }}
                         promptText={promptText}

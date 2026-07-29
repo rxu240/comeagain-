@@ -56,7 +56,7 @@ impl AppShell.analyse(source: any) -> None {
         }
 
         status = "Measuring delivery";
-        result = root spawn AnalyseTake(audio=decoded.b64, label="", purpose=purpose);
+        result = root spawn AnalyseTake(audio=decoded.b64, label="", purpose=purpose, mode=mode);
 
         if result.reports and len(result.reports) > 0 {
             audioUrl = decoded.url;
@@ -81,7 +81,7 @@ impl AppShell.analyse(source: any) -> None {
 impl AppShell.generatePrompt() -> None {
     promptBusy = True;
     try {
-        result = root spawn GeneratePrompt();
+        result = root spawn GeneratePrompt(mode=mode);
         if result.reports and len(result.reports) > 0 {
             promptText = result.reports[0];
         }

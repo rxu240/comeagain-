@@ -234,6 +234,23 @@ def voiced_st(w: Window) -> np.ndarray {
 
 # --- Dimensions ------------------------------------------------------------
 
+"""Median voiced pitch in this window, in semitones off the speaker's own
+reference. Zero when there is not enough voiced audio to trust a median -
+callers treat that as "no reading" rather than "dead centre"."""
+def window_pitch_median_st(w: Window) -> float {
+    st = voiced_st(w);
+    if len(st) < 8 { return 0.0; }
+    return float(np.median(st));
+}
+
+
+"""Syllables per second while actually speaking, in this window."""
+def window_rate(w: Window) -> float {
+    phon = max(w.phonation, 0.2);
+    return float(len(w.nuclei)) / phon;
+}
+
+
 """Pitch: where the voice sits and how far it travels, in semitones."""
 def dim_pitch(ctx: TakeContext, w: Window, _whole: bool) -> DimResult {
     st = voiced_st(w);
@@ -553,13 +570,30 @@ def terminal_slope(w: Window) -> float {
 }
 
 
+"""Pacing target band for the practice context.
+
+VC mode narrows the ideal band toward a deliberate, unhurried middle - the
+register that reads as confidence rather than a pitch rehearsed at speed.
+Girlfriend mode pulls the ceiling down further: "pacing that isn't too fast"
+matters more than hitting a brisk floor in a casual conversation.
+"""
+def pacing_target(mode: str) -> Target {
+    if mode == "girlfriend" {
+        return Target(lo_fail=1.0, lo_ideal=2.6, hi_ideal=4.2, hi_fail=6.5);
+    }
+    if mode == "vc" {
+        return Target(lo_fail=1.2, lo_ideal=3.2, hi_ideal=4.8, hi_fail=8.0);
+    }
+    return Target(lo_fail=1.2, lo_ideal=3.4, hi_ideal=5.2, hi_fail=8.5);
+}
+
+
 """Pacing: syllables per second while actually speaking."""
-def dim_pacing(_ctx: TakeContext, w: Window, whole: bool) -> DimResult {
-    phon = max(w.phonation, 0.2);
-    rate = float(len(w.nuclei)) / phon;
+def dim_pacing(_ctx: TakeContext, w: Window, whole: bool, mode: str) -> DimResult {
+    rate = window_rate(w);
     wpm = rate * 60.0 / 1.5;
 
-    target = Target(lo_fail=1.2, lo_ideal=3.4, hi_ideal=5.2, hi_fail=8.5);
+    target = pacing_target(mode);
     score = band_score(rate, target);
     side = band_side(rate, target);
 
@@ -595,9 +629,30 @@ def dim_pacing(_ctx: TakeContext, w: Window, whole: bool) -> DimResult {
 }
 
 
-"""Pausing for one utterance, judged on the gap it lands into."""
-def segment_pausing(w: Window, inner: list[tuple[int, int]], moments: list[Moment]) -> DimResult {
-    target = Target(lo_fail=0.0, lo_ideal=0.18, hi_ideal=1.0, hi_fail=2.6);
+"""Whether this window contains a syllable prominent enough to call a key
+point - a nucleus that stands out from its neighbours in loudness and pitch,
+not just the loudest one in an otherwise flat line."""
+def is_key_point(w: Window) -> bool {
+    if len(w.prom) == 0 { return False; }
+    return max(w.prom) >= 1.3;
+}
+
+
+"""Pausing for one utterance, judged on the gap it lands into.
+
+In VC mode, a pause should only cost points for running too long - the app
+should never dock a founder for launching straight into the next line - and a
+pause that follows a genuine key point is allowed to run considerably longer
+before it reads as hesitation rather than emphasis. Other modes keep the
+original band, where landing with no room at all still costs something.
+"""
+def segment_pausing(w: Window, inner: list[tuple[int, int]], moments: list[Moment], mode: str) -> DimResult {
+    key = is_key_point(w);
+    if mode == "vc" {
+        target = Target(lo_fail=0.0, lo_ideal=0.15, hi_ideal=1.9, hi_fail=3.4) if key else Target(lo_fail=0.0, lo_ideal=0.0, hi_ideal=1.1, hi_fail=2.6);
+    } else {
+        target = Target(lo_fail=0.0, lo_ideal=0.18, hi_ideal=1.0, hi_fail=2.6);
+    }
     score = band_score(w.trail, target);
     side = band_side(w.trail, target);
     at = r2(float(w.hi) * HOP_S);
@@ -613,12 +668,17 @@ def segment_pausing(w: Window, inner: list[tuple[int, int]], moments: list[Momen
             note="Runs straight into the next line."
         ));
     } elif side > 0 {
-        headline = "Long gap after this line";
-        detail = fmt1(w.trail) + "s of silence follows. Past about a second a listener reads the gap as hesitation rather than emphasis.";
-        moments.append(Moment(
-            t=at, tEnd=r2(at + w.trail), dimension="pausing", severity="watch",
-            note=fmt1(w.trail) + "s gap - long enough that attention drifts."
-        ));
+        if mode == "vc" and key {
+            headline = "Good pause after a strong line";
+            detail = fmt1(w.trail) + "s of silence follows a line you leaned into - that is exactly where a longer pause earns its keep.";
+        } else {
+            headline = "Long gap after this line";
+            detail = fmt1(w.trail) + "s of silence follows. Past about a second a listener reads the gap as hesitation rather than emphasis.";
+            moments.append(Moment(
+                t=at, tEnd=r2(at + w.trail), dimension="pausing", severity="watch",
+                note=fmt1(w.trail) + "s gap - long enough that attention drifts."
+            ));
+        }
     }
 
     metrics = [
@@ -640,7 +700,7 @@ number that matters is the share of time spent in silence. A segment, though,
 is *bounded* by pauses by construction, so scoring its internal silence would
 mark every utterance down; what matters there is the gap it lands into.
 """
-def dim_pausing(_ctx: TakeContext, w: Window, whole: bool) -> DimResult {
+def dim_pausing(_ctx: TakeContext, w: Window, whole: bool, mode: str) -> DimResult {
     inner = runs_of(np.logical_not(w.speech));
     kept: list[tuple[int, int]] = [];
     for (s, e) in inner {
@@ -662,7 +722,7 @@ def dim_pausing(_ctx: TakeContext, w: Window, whole: bool) -> DimResult {
     moments: list[Moment] = [];
 
     if not whole {
-        return segment_pausing(w, kept, moments);
+        return segment_pausing(w, kept, moments, mode);
     }
 
     target = Target(lo_fail=0.0, lo_ideal=0.08, hi_ideal=0.30, hi_fail=0.60);
@@ -937,10 +997,15 @@ name the two that moved it, so a reader can always trace the number back to
 something they can hear. Making tone a real measurement - voice quality, the
 jitter and spectral-tilt cues behind "warm" and "tense" - is still open work.
 """
-def dim_tone(_ctx: TakeContext, _w: Window, others: list[DimensionReport]) -> DimResult {
+def dim_tone(_ctx: TakeContext, _w: Window, others: list[DimensionReport], mode: str) -> DimResult {
     by_key: dict[str, float] = {};
     for r in others { by_key[r.key] = r.score; }
 
+    # VC mode leans on the cues that read as confidence - stress and
+    # articulation carry more weight, alongside intonation. Girlfriend mode
+    # leans on warmth and ease - volume and pitch matter more than how hard
+    # the accents land.
+    weights = [1.5, 1.1, 1.0, 1.3, 1.0, 1.2, 0.7] if mode == "vc" else [1.3, 1.3, 1.2, 0.8, 1.2, 1.0, 0.7];
     score = blend(
         [
             by_key.get("intonation", 50.0), by_key.get("volume", 50.0),
@@ -948,7 +1013,7 @@ def dim_tone(_ctx: TakeContext, _w: Window, others: list[DimensionReport]) -> Di
             by_key.get("pitch", 50.0), by_key.get("articulation", 50.0),
             by_key.get("pausing", 50.0)
         ],
-        [1.4, 1.2, 1.1, 1.0, 0.9, 0.9, 0.8]
+        weights
     );
 
     warm = by_key.get("pitch", 50.0) >= 65.0 and by_key.get("volume", 50.0) >= 60.0;
@@ -1018,13 +1083,18 @@ obj WindowScore {
 }
 
 
-"""Run every dimension over one window and fold the results together."""
-def score_window(ctx: TakeContext, w: Window, whole: bool) -> WindowScore {
+"""Run every dimension over one window and fold the results together.
+
+`mode` is the practice context - "vc" or "girlfriend" - and only shifts the
+dimensions where the two contexts genuinely want different things: pacing,
+pausing, and how tone weighs the other seven.
+"""
+def score_window(ctx: TakeContext, w: Window, whole: bool, mode: str = "vc") -> WindowScore {
     results = [
         dim_pitch(ctx, w, whole),
         dim_intonation(ctx, w, whole),
-        dim_pacing(ctx, w, whole),
-        dim_pausing(ctx, w, whole),
+        dim_pacing(ctx, w, whole, mode),
+        dim_pausing(ctx, w, whole, mode),
         dim_volume(ctx, w, whole),
         dim_stress(ctx, w, whole),
         dim_articulation(ctx, w, whole)
@@ -1037,7 +1107,7 @@ def score_window(ctx: TakeContext, w: Window, whole: bool) -> WindowScore {
         moments += r.moments;
     }
 
-    tone = dim_tone(ctx, w, reports);
+    tone = dim_tone(ctx, w, reports, mode);
     moments += tone.moments;
 
     return WindowScore(

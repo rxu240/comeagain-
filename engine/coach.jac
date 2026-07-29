@@ -19,6 +19,24 @@ glob PROMPT_FALLBACKS: list[str] = [
     "Tell the story of a time you got lost - somewhere in a new city, in a building, anywhere. Describe how you realized you were lost, what you did first, and how it finally resolved. End with one sentence about what you would do differently if it happened again today."
 ];
 
+# The three questions every VC eventually asks a founder. Kept literal and
+# fixed rather than handed to an LLM, so the practice prompt is always
+# recognisably one of these three - never a paraphrase that drifts off them.
+glob VC_PROMPTS: list[str] = [
+    "Why you? Make the case, out loud, for why you specifically are the right person to build this - not the idea, you.",
+    "Why this solution? Walk through why the approach you have chosen is the right one, as if a partner just asked you to defend it on the spot.",
+    "Why now? Make the case for why this has to happen this year, and not two years from now."
+];
+
+glob GIRLFRIEND_PROMPTS: list[str] = [
+    "What's something you've gotten really into lately that most people wouldn't guess about you?",
+    "What does a genuinely good weekend look like for you, start to finish?",
+    "What's a small thing that instantly puts you in a good mood?",
+    "If you could only eat food from one country for the rest of your life, what would you pick and why?",
+    "What's something you're low-key proud of that you never really get to talk about?",
+    "What's the best trip you've ever taken, and what made it stick with you?"
+];
+
 glob DRILLS: dict[str, str] = {
     "pacing-fast": "Read one paragraph out loud at half your natural speed. Then take it to three-quarters. That is your real presenting pace.",
     "pacing-slow": "Read a paragraph and cut every gap that is not doing work. Aim to finish it in three-quarters of the time.",
@@ -162,18 +180,26 @@ def load_prompt_writer() -> any {
 }
 
 
-"""A short speaking prompt: LLM when configured, a canned one otherwise."""
-def generate_speaking_prompt() -> str {
-    if not llm_available() { return random.choice(PROMPT_FALLBACKS); }
+"""A short speaking prompt for the given mode.
+
+VC mode is always one of the three canonical questions - deterministic, never
+handed to an LLM, so the practice prompt never drifts off "why you / why this
+solution / why now". Girlfriend mode asks small talk; the LLM adds variety
+when configured, and a canned pool of small-talk questions otherwise.
+"""
+def generate_speaking_prompt(mode: str) -> str {
+    if mode == "vc" { return random.choice(VC_PROMPTS); }
+
+    if not llm_available() { return random.choice(GIRLFRIEND_PROMPTS); }
 
     writer = load_prompt_writer();
-    if not writer { return random.choice(PROMPT_FALLBACKS); }
+    if not writer { return random.choice(GIRLFRIEND_PROMPTS); }
 
     try {
-        out = String(writer()).strip();
-        if out == "" { return random.choice(PROMPT_FALLBACKS); }
+        out = String(writer(mode)).strip();
+        if out == "" { return random.choice(GIRLFRIEND_PROMPTS); }
         return out;
     } except Exception {
-        return random.choice(PROMPT_FALLBACKS);
+        return random.choice(GIRLFRIEND_PROMPTS);
     }
 }

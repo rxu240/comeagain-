@@ -13,7 +13,8 @@ import from datetime { datetime }
 
 import from engine.dsp { HOP_S, decode_pcm, analyze_frames }
 import from engine.dimensions {
-    TakeContext, build_context, window_of, score_window
+    TakeContext, build_context, window_of, score_window,
+    window_rate, window_pitch_median_st
 }
 import from engine.segmentation { segment_bounds, ribbon }
 import from engine.asr { transcribe, best_utterance, ASR_SIZE }
@@ -23,7 +24,14 @@ import from engine.model {
     RankRow, Transcript, Word
 }
 import from engine.coach { coach_take, generate_speaking_prompt }
+import from engine.engagement { attention_score }
 import from engine.scoring { r2 }
+
+
+"""Normalise a client-supplied mode to one of the two known values."""
+def norm_mode(mode: str) -> str {
+    return "girlfriend" if mode == "girlfriend" else "vc";
+}
 
 
 """Take-level moments: earliest first, at most two per dimension.
@@ -74,6 +82,7 @@ def rank_score(x: RankRow) -> float { return x.score; }
 """Walks a take's segments and scores every delivery dimension on each one."""
 walker ScorePass {
     has ctx: TakeContext;
+    has mode: str = "vc";
     has segments: list[SegmentReport] = [];
     has moments: list[Moment] = [];
 
@@ -83,7 +92,7 @@ walker ScorePass {
 
     can score_segment with Segment entry {
         w = window_of(self.ctx, here.f_start, here.f_end, here.trail);
-        scored = score_window(self.ctx, w, False);
+        scored = score_window(self.ctx, w, False, self.mode);
         here.score = scored.overall;
 
         for d in scored.dimensions {
@@ -108,6 +117,8 @@ walker ScorePass {
             headline=scored.dimensions[0].headline,
             text=w.text,
             kind=w.kind,
+            rate=window_rate(w),
+            pitchSt=window_pitch_median_st(w),
             words=words,
             dimensions=scored.dimensions,
             moments=scored.moments
@@ -122,9 +133,11 @@ walker:pub AnalyseTake {
     has audio: str = "";
     has label: str = "";
     has purpose: str = "";
+    has mode: str = "vc";
     has reports: list[TakeReport] = [];
 
     can run with Root entry {
+        mode = norm_mode(self.mode);
         samples = decode_pcm(self.audio);
         fd = analyze_frames(samples);
         # The transcript is what makes intonation and stress judgeable, so it
@@ -156,11 +169,11 @@ walker:pub AnalyseTake {
             );
         }
 
-        pass_ = ScorePass(ctx=ctx);
+        pass_ = ScorePass(ctx=ctx, mode=mode);
         _ = take spawn pass_;
 
         whole = window_of(ctx, 0, fd.n_frames, 0.0);
-        overall_scored = score_window(ctx, whole, True);
+        overall_scored = score_window(ctx, whole, True, mode);
         take.overall = overall_scored.overall;
 
         for d in overall_scored.dimensions {
@@ -170,9 +183,15 @@ walker:pub AnalyseTake {
             );
         }
 
-        advice = coach_take(overall_scored.overall, overall_scored.dimensions, self.purpose);
+        context = self.purpose;
+        frame = "Investor pitch rehearsal (VC mode)." if mode == "vc" else "Practicing conversation with someone the speaker is interested in (Girlfriend mode).";
+        context = frame if context == "" else context + " " + frame;
+
+        advice = coach_take(overall_scored.overall, overall_scored.dimensions, context);
         take.summary = advice.summary;
         take.transcript = tr.text;
+
+        attn = attention_score(overall_scored.dimensions, pass_.segments, mode);
 
         strands = ribbon(ctx);
         report (TakeReport(
@@ -193,7 +212,11 @@ walker:pub AnalyseTake {
             coachedBy=advice.source,
             transcript=tr.text,
             transcriptSource=tr.source,
-            transcriptNote=tr.note
+            transcriptNote=tr.note,
+            mode=mode,
+            attention=attn[0],
+            attentionHeadline=attn[1],
+            attentionDetail=attn[2]
         ));
     }
 }
@@ -201,10 +224,11 @@ walker:pub AnalyseTake {
 
 """A short speaking prompt for someone who has nothing prepared to say."""
 walker:pub GeneratePrompt {
+    has mode: str = "vc";
     has reports: list[str] = [];
 
     can run with Root entry {
-        report generate_speaking_prompt();
+        report generate_speaking_prompt(norm_mode(self.mode));
     }
 }
 

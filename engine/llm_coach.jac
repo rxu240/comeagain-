@@ -26,6 +26,11 @@ sem llm_coach.profile = "The measured delivery profile: each dimension with its 
 sem llm_coach.context = "What the speaker said this recording was for, if they told us.";
 
 
-"""Ask an LLM for something to say, for someone with nothing prepared."""
-def generate_prompt() -> str by llm(temperature=0.9);
-sem generate_prompt = "Write a single short speaking prompt: a specific, vivid topic or scenario a person could talk about out loud for 30-45 seconds, to warm up before a recorded take. Write it as a direct instruction to the speaker, second person, exactly about 50 words. Output only the prompt text - no title, no preamble, no quotation marks.";
+"""Ask an LLM for something to say, for someone with nothing prepared.
+
+Only ever called for girlfriend mode - vc mode's prompt is one of three fixed
+questions and never reaches an LLM (see `engine.coach.generate_speaking_prompt`).
+"""
+def generate_prompt(mode: str) -> str by llm(temperature=0.9);
+sem generate_prompt = "Write a single short, casual small-talk question a man could ask a woman he is interested in, early in a conversation - warm and specific, not deep or heavy, the kind of question that is easy and fun to answer out loud. Output only the question text - no title, no preamble, no quotation marks.";
+sem generate_prompt.mode = "The practice context - always 'girlfriend' for this function.";

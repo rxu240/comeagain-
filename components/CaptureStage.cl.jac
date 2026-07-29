@@ -11,6 +11,7 @@ def:pub CaptureStage(
     status: str,
     error: str,
     canRecord: bool,
+    mode: str,
     purpose: str,
     onPurpose: Callable[[str], None],
     promptText: str,
@@ -19,9 +20,9 @@ def:pub CaptureStage(
     onStart: Callable[[], None],
     onStop: Callable[[], None]
 ) -> JsxElement {
-    genLabel = "Generate a prompt";
+    genLabel = "Generate a prompt" if mode == "vc" else "Give me a question";
     if promptBusy { genLabel = "Generating..."; }
-    elif promptText != "" { genLabel = "New prompt"; }
+    elif promptText != "" { genLabel = "New prompt" if mode == "vc" else "Another one"; }
 
     return <div className="flex flex-col items-center justify-center gap-9 min-h-[75svh]">
         <header className="text-center px-2">

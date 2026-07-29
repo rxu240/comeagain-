@@ -7,6 +7,7 @@ leaves knowing the one thing to change.
 
 sv import from ..engine.model { TakeReport, SegmentReport, DimensionReport, RankRow }
 import from .ScoreCrest { ScoreCrest }
+import from .AttentionCard { AttentionCard }
 import from .ProsodyRibbon { ProsodyRibbon }
 import from .DimensionCard { DimensionCard }
 import from .SegmentList { SegmentList }
@@ -195,6 +196,12 @@ def:pub ResultsView(
             segments={take.segments}
             activeIdx={activeIdx}
             onPick={pickSegment}
+        />
+
+        <AttentionCard
+            score={take.attention}
+            headline={take.attentionHeadline}
+            detail={take.attentionDetail}
         />
 
         {if ranked {
