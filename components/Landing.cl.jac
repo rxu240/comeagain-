@@ -43,10 +43,10 @@ def:pub Landing() -> JsxElement {
 
     return <div className="relative z-10 min-h-svh flex flex-col items-center justify-center px-6 py-[6vh]">
         <main className="w-full max-w-[30rem] flex flex-col items-center text-center">
-            <span className="eyebrow mb-7">{"Tonecraft"}</span>
+            <span className="eyebrow mb-7">{"comeagain?"}</span>
 
             <h1 className="display text-[clamp(1.9rem,5vw,2.6rem)] leading-[1.25] text-ink-900 mb-4">
-                {"Hear how you"}<br/>{"actually sound."}
+                {"Be heard."}
             </h1>
 
             <p className="text-[1rem] text-ink-600 mb-11">
