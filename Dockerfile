@@ -15,22 +15,32 @@ WORKDIR /app
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
+# `jac start main.jac --client pwa` rebuilds the client bundle from scratch
+# *twice* on every container start - PWATarget.start() builds, then
+# delegates to WebTarget.start() which builds again (WebTarget.build()
+# always rmtrees and rebuilds dist/, force=True, no staleness check). On a
+# memory-constrained container that doubles peak Vite/Bun memory for no
+# reason, since nothing changed between the two builds. jac_client has no
+# flag to avoid this, so we patch the installed package: WebTarget.build()
+# will reuse an already-built dist/ when JAC_REUSE_PREBUILT_CLIENT=1 (opt-in,
+# so this doesn't change behavior for local dev or any other environment).
+#
+# NOTE: target "web" (instead of "pwa") is NOT a lighter-weight alternative -
+# jac_client's own CLI treats "web" as a no-op and falls through to core
+# jaclang's bare server, which doesn't know about this project's
+# Tailwind/shadcn Vite plugin config and fails to build entirely. Must stay
+# on "pwa".
+COPY scripts/patch_jac_client_prebuild.py ./scripts/patch_jac_client_prebuild.py
+RUN python scripts/patch_jac_client_prebuild.py
+
 COPY . .
 
-# Install npm deps. Not pre-building the client bundle here: `jac start
-# --client pwa` always rebuilds from scratch at runtime regardless (and
-# rebuilds it *twice* - PWATarget.start() builds, then delegates to
-# WebTarget.start() which builds again - a jac_client 0.3.25 quirk), so a
-# build-time bundle would just be thrown away. Pre-building here would only
-# double memory pressure during the image build for no benefit.
-#
-# NOTE: target "web" (instead of "pwa") is NOT a lighter-weight alternative
-# here - jac_client's own CLI treats "web" as a no-op and falls through to
-# core jaclang's bare server, which doesn't know about this project's
-# Tailwind/shadcn Vite plugin config and fails to build entirely. Stay on
-# "pwa"; the real fix for the double build's memory pressure is giving the
-# service enough RAM (see Railway service Settings -> Scale/Resources).
-RUN jac install
+# Install npm deps and build the client bundle once, here, where the builder
+# typically has more CPU/RAM headroom than the running container does. The
+# patch above makes the runtime `jac start --client pwa` reuse this instead
+# of rebuilding it.
+ENV JAC_REUSE_PREBUILT_CLIENT=1
+RUN jac install && jac build --client pwa
 
 # The graph database (SQLite, WAL mode) lives here. This path must be a
 # mounted volume in production - see docker-compose.yml - or takes vanish on
