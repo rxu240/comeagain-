@@ -11,13 +11,17 @@ cl {
     import from .components.AppShell { AppShell }
     import from .components.Landing { Landing }
 
-    """The practice app is still being edited - only localhost gets it.
-    Everyone else (comeagain.pro, any deploy preview) sees the waitlist."""
+    """Everyone lands on the waitlist page by default - the practice app
+    is still being edited and isn't public yet. Only on localhost does the
+    landing page get a button through to it, for local testing."""
     def:pub app() -> JsxElement {
+        has view: str = "landing";
+
         isLocal = window.location.hostname == "localhost" or window.location.hostname == "127.0.0.1";
-        if isLocal {
+
+        if view == "app" and isLocal {
             return <AppShell/>;
         }
-        return <Landing/>;
+        return <Landing showAppLink={isLocal} onOpenApp={lambda () { view = "app"; }}/>;
     }
 }

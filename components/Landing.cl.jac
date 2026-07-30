@@ -1,8 +1,9 @@
 """Public landing page: waitlist signup, no app behind it.
 
-This is what comeagain.pro shows in production. The VC/Girlfriend practice
-app (AppShell) is still being edited and is only reachable from localhost -
-see main.jac, which picks between the two based on window.location.hostname.
+This is what comeagain.pro shows in production, and what localhost shows by
+default too - it's the thing actively being edited. The VC/Girlfriend
+practice app (AppShell) still exists for local testing only: main.jac passes
+showAppLink=True on localhost, which reveals the dev-only button below.
 """
 
 glob STRIPE_PAYMENT_LINK: str = "https://buy.stripe.com/REPLACE_ME";
@@ -19,7 +20,7 @@ def isValidEmail(value: str) -> bool {
 }
 
 
-def:pub Landing() -> JsxElement {
+def:pub Landing(showAppLink: bool, onOpenApp: Callable[[], None]) -> JsxElement {
     has email: str = "",
         error: str = "",
         submitting: bool = False;
@@ -41,10 +42,14 @@ def:pub Landing() -> JsxElement {
     submitLabel = "Reserve your spot ->";
     if submitting { submitLabel = "Redirecting..."; }
 
-    return <div className="relative z-10 min-h-svh flex flex-col items-center justify-center px-6 py-[6vh]">
-        <main className="w-full max-w-[30rem] flex flex-col items-center text-center">
-            <span className="eyebrow mb-7">{"comeagain?"}</span>
+    return <div className="relative z-10 min-h-svh flex flex-col px-6 py-[6vh]">
+        <header className="px-5 pt-2 pb-2">
+            <span className="display text-[15px] tracking-tight text-ink-700">
+                {"comeagain?"}
+            </span>
+        </header>
 
+        <main className="flex-1 w-full max-w-[30rem] mx-auto flex flex-col items-center justify-center text-center">
             <h1 className="display text-[clamp(1.9rem,5vw,2.6rem)] leading-[1.25] text-ink-900 mb-4">
                 {"Be heard."}
             </h1>
@@ -79,6 +84,16 @@ def:pub Landing() -> JsxElement {
             <p className="mono text-[0.7rem] tracking-[0.08em] text-ink-400 mt-[1.1rem]">
                 {"Beta is releasing 8/10/26"}
             </p>
+
+            {if showAppLink {
+                <button
+                    type="button"
+                    onClick={onOpenApp}
+                    className="glass-quiet rounded-full px-4 py-2 mono text-[11px] uppercase tracking-[0.2em] text-ink-600 cursor-pointer border-0 mt-8"
+                >
+                    {"Dev: open VC/GF app ->"}
+                </button>
+            }}
         </main>
     </div>;
 }
