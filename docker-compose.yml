@@ -1,0 +1,25 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      JAC_DATA_PATH: /data/jac-data
+      TRANSCRIBE_SERVICE_URL: http://transcribe:8001
+      PYTHONIOENCODING: utf-8
+    volumes:
+      - jac-data:/data/jac-data
+    depends_on:
+      - transcribe
+
+  transcribe:
+    build: ./transcribe_service
+    # Not published to the host - only the app service needs to reach it.
+    expose:
+      - "8001"
+    environment:
+      TRANSCRIBE_WORKERS: "2"
+      OMP_NUM_THREADS: "2"
+
+volumes:
+  jac-data:

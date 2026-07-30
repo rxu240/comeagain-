@@ -15,26 +15,20 @@ WORKDIR /app
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Bake the recogniser weights into the image. Without this the first request
-# after a cold start blocks on a ~75 MB download from Hugging Face, and fails
-# outright on a host with no egress.
-ENV HF_HOME=/opt/models
-RUN python -c "from faster_whisper import WhisperModel; \
-    WhisperModel('base.en', device='cpu', compute_type='int8')"
-
 COPY . .
 
 # Install npm deps and compile the client (cl) Jac to a PWA bundle.
 RUN jac install && jac build --client pwa
 
-# Serverless and container filesystems are read-only outside /tmp; the graph
-# database lives there. Set this to a mounted volume to keep takes across
-# restarts.
-ENV JAC_DATA_PATH=/tmp/jac-data
+# The graph database (SQLite, WAL mode) lives here. This path must be a
+# mounted volume in production - see docker-compose.yml - or takes vanish on
+# every restart/redeploy.
+ENV JAC_DATA_PATH=/data/jac-data
 ENV PYTHONIOENCODING=utf-8
 ENV PORT=8000
-# Transcription is CPU-bound; leave headroom for the request thread.
-ENV OMP_NUM_THREADS=2
+# Where to reach transcribe_service (see docker-compose.yml for the default
+# service-discovery name); transcription itself no longer runs in this process.
+ENV TRANSCRIBE_SERVICE_URL=http://transcribe:8001
 EXPOSE 8000
 
 CMD ["sh", "-c", "jac start main.jac --host 0.0.0.0 --port ${PORT} --client pwa"]
