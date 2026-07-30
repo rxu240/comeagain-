@@ -17,8 +17,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Install npm deps and compile the client (cl) Jac to a PWA bundle.
-RUN jac install && jac build --client pwa
+# Install npm deps. Not pre-building the client bundle here: `jac start`
+# always rebuilds from scratch on the "web" target (and rebuilds *twice* on
+# the "pwa" target - PWATarget.start() builds, then delegates to
+# WebTarget.start() which builds again - a jac_client 0.3.25 quirk), so a
+# build-time bundle would just be thrown away. Pre-building here would only
+# double memory pressure during the image build for no benefit.
+RUN jac install
 
 # The graph database (SQLite, WAL mode) lives here. This path must be a
 # mounted volume in production - see docker-compose.yml - or takes vanish on
@@ -31,4 +36,4 @@ ENV PORT=8000
 ENV TRANSCRIBE_SERVICE_URL=http://transcribe:8001
 EXPOSE 8000
 
-CMD ["sh", "-c", "jac start main.jac --host 0.0.0.0 --port ${PORT} --client pwa"]
+CMD ["sh", "-c", "jac start main.jac --host 0.0.0.0 --port ${PORT} --client web"]
